@@ -219,13 +219,18 @@ const $ = id => document.getElementById(id);
    1) FB_URL renseigné  -> base Firebase : tous les comptes, tous les appareils.
    2) sinon, base Claude (si la page est publiée comme artefact Claude).
    3) sinon, localStorage : comptes de CET appareil seulement. */
-const FB_URL = '';   // ex : 'https://mon-jeu-default-rtdb.europe-west1.firebasedatabase.app'
+const FB_URL = 'https://derniere-nuit-default-rtdb.europe-west1.firebasedatabase.app';
 const LK = 'dn_users_v2';
 const lload = () => { try { return JSON.parse(localStorage.getItem(LK)) || {}; } catch (e) { return {}; } };
 const lsave = d => { try { localStorage.setItem(LK, JSON.stringify(d)); } catch (e) {} };
 let DB = null, MODE = 'local';
 async function fb(m, p, body) {
-  const r = await fetch(FB_URL.replace(/\/+$/, '') + '/' + p + '.json', { method: m, headers: { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
+  const path = p ? '/' + p : '';
+  const r = await fetch(FB_URL.replace(/\/+$/, '') + path + '.json', { 
+    method: m, 
+    headers: { 'Content-Type': 'application/json' }, 
+    body: body === undefined ? undefined : JSON.stringify(body) 
+  });
   if (!r.ok) throw new Error('fb ' + r.status);
   return r.json();
 }
