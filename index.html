@@ -225,7 +225,12 @@ const lload = () => { try { return JSON.parse(localStorage.getItem(LK)) || {}; }
 const lsave = d => { try { localStorage.setItem(LK, JSON.stringify(d)); } catch (e) {} };
 let DB = null, MODE = 'local';
 async function fb(m, p, body) {
-  const r = await fetch(FB_URL.replace(/\/+$/, '') + '/' + p + '.json', { method: m, headers: { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
+  const path = p ? '/' + p : '';
+  const r = await fetch(FB_URL.replace(/\/+$/, '') + path + '.json', { 
+    method: m, 
+    headers: { 'Content-Type': 'application/json' }, 
+    body: body === undefined ? undefined : JSON.stringify(body) 
+  });
   if (!r.ok) throw new Error('fb ' + r.status);
   return r.json();
 }
