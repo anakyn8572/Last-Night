@@ -212,6 +212,19 @@ textarea{font-family:inherit;resize:vertical;min-height:90px;-webkit-user-select
 .fp>.rep{margin-left:14px;padding-left:12px;border-left:2px solid #2f8cff}
 .stf{display:inline-flex;align-items:center;padding:1px 8px;border-radius:999px;background:linear-gradient(90deg,#1f5fd0,#2f8cff);color:#fff;font:400 10px Impact,sans-serif;letter-spacing:.05em;box-shadow:0 0 8px rgba(47,140,255,.5)}
 .stt{padding:2px 10px;border-radius:999px;border:1px solid var(--ok);color:var(--ok);font:400 11px Impact,sans-serif}
+
+/* v10 : inventaire d'armes dans le HUD */
+#wpn{display:none}
+#inv{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;width:min(520px,100%);padding:4px;border-radius:12px;background:rgba(8,13,25,.5);border:1px solid rgba(42,61,94,.7);backdrop-filter:blur(4px);pointer-events:auto}
+#inv:empty{display:none}
+#inv .ic{display:flex;align-items:center;gap:5px;padding:2px 7px 2px 5px;border-radius:8px;border:1px solid transparent;background:rgba(22,35,58,.75);color:var(--mute);font-size:10px;line-height:1.3;cursor:pointer;touch-action:manipulation;transition:border-color .12s,box-shadow .12s,color .12s,background .12s}
+#inv .ic:hover{border-color:var(--line);color:var(--txt)}
+#inv .ik{font-style:normal;font-size:9px;color:var(--wc,var(--acc2));opacity:.85;min-width:7px;text-align:center}
+#inv .in{white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis}
+#inv .ia{font:400 11px Impact,sans-serif;color:var(--txt);letter-spacing:.03em;min-width:12px;text-align:right}
+#inv .ic.sel{border-color:var(--acc2);color:#fff;background:rgba(40,60,96,.92);box-shadow:0 0 0 1px var(--acc2),0 0 10px rgba(255,179,71,.4)}
+@supports (color:color-mix(in srgb,red,blue)){#inv .ic.sel{border-color:var(--wc,var(--acc2));box-shadow:0 0 0 1px var(--wc,var(--acc2)),0 0 12px color-mix(in srgb,var(--wc,#ffb347) 55%,transparent)}}
+#inv .ic.low .ia{color:var(--bad)}
 </style></head><body>
 <canvas id="c"></canvas><div id="vig"></div>
 <div id="hud" class="hide">
@@ -219,7 +232,7 @@ textarea{font-family:inherit;resize:vertical;min-height:90px;-webkit-user-select
   <div class="hc"><small>Zombies restants : <b id="rem">0</b></small><div id="wv">Vague 1</div></div>
   <div class="hr"><span>Points</span><b id="sc">0</b><small>Argent <b id="cash">0</b> $</small></div>
 </div>
-<div id="hbot" class="hide"><small id="bon"></small><div id="wpn"></div><div id="hrow"><div id="hpb"><i id="hp"></i><em id="hpn">100 / 100</em></div><div id="pw" role="button" aria-label="Utiliser le pouvoir"><span id="pwk">Clic droit</span><canvas id="pwc" width="70" height="64"></canvas><span id="pwn">Aucun</span></div></div></div>
+<div id="hbot" class="hide"><small id="bon"></small><div id="wpn"></div><div id="hrow"><div id="hpb"><i id="hp"></i><em id="hpn">100 / 100</em></div><div id="pw" role="button" aria-label="Utiliser le pouvoir"><span id="pwk">Clic droit</span><canvas id="pwc" width="70" height="64"></canvas><span id="pwn">Aucun</span></div></div><div id="inv" aria-label="Armes"></div></div>
 <div id="banner" class="hide"></div>
 <section id="auth" class="screen">
   <div class="card auth">
@@ -415,7 +428,7 @@ async function login() {
   } catch (e) { setErr('Erreur de connexion. Réessayez.'); }
   finally { $('btnLogin').disabled = false; }
 }
-const HOW = `<ul class="how"><li><b>Se déplacer</b> : flèches ou ZQSD / WASD.</li><li><b>Viser</b> : le canon suit votre curseur.</li><li><b>Tirer</b> : maintenez le clic gauche.</li><li><b>Esquive</b> : Maj ou Espace (recharge 1,6 s).</li><li><b>Pouvoir</b> : rare, lâché par certains zombies. Il apparaît dans la case à côté de votre barre de vie et s’utilise plusieurs fois. <b>Clic droit</b> (ou touche E) pour l’activer.</li></ul><div id="howExtra" class="hide"><ul class="how"><li><b>Tir</b> : le pistolet tire un coup par clic ; les armes automatiques tirent tant que vous maintenez.</li><li><b>Armes</b> : certains zombies lâchent une arme (les meilleures n’arrivent que dans les vagues avancées). Chaque arme a sa propre réserve de munitions, avec un maximum différent (le sniper et le railgun en portent peu, la mitraillette et le minigun beaucoup). Elle s’affiche à côté du nom de l’arme. Ramasser une arme déjà possédée ou une caisse MU recharge les réserves. <b>Changer d’arme</b> : Q, molette de la souris ou toucher le nom de l’arme. Arme vide : vous passez à une autre arme chargée, sinon au couteau.</li><li><b>Bonus</b> : croix soin, bouclier, flèches vitesse, ×2 points, bombe, flocon gel (zombies ralentis), ! furie (tir ×2), caisse MU munitions, U aimant (attire les bonus).</li><li><b>Zombies</b> : chaque type rapporte des points différents. Méfiez-vous des cracheurs et des kamikazes.</li><li><b>Vagues</b> : elles deviennent de plus en plus dures jusqu’à la vague 100, avec plus de zombies au fil du temps, de nouveaux types dès les vagues 12 à 20 et un boss unique aux vagues 15, 25, 35, 45, 55, 65, 75, 85 et 100 (colosse toutes les 5 vagues, titan toutes les 10).</li><li><b>Combo</b> : enchaînez les kills pour des points et de l’argent en plus.</li><li><b>Argent</b> : vous en gagnez en direct en jouant, selon les zombies abattus, les combos, la distance parcourue et les vagues atteintes. Il s’affiche en haut à droite et est enregistré régulièrement.</li><li><b>Pouvoirs (12)</b> : Lasers, Onde de choc, Lames tournantes, Frappe aérienne, Tempête de balles, Soin de zone, Chrono, Barrière (invulnérable), Furie (tir ×2 et vitesse), Anneau de feu, Foudre (frappe les 8 zombies les plus proches) et Siphon (aspire la vie des zombies et vous soigne).</li><li><b>Boutique</b> (carte Argent) : achetez des skins.</li><li><b>Menu d’amélioration</b> (carte Argent) : toutes les armes et tous les pouvoirs sont là, jusqu’au niveau 5. Armes : +15 % de dégâts, tir plus rapide, +12 % de munitions par ramassage, balles perforantes au niveau 3. Pouvoirs : +15 % de puissance, +10 % de durée, +1 charge au niveau 3.</li><li><b>Améliorations de partie</b> : à la fin de chaque vague, choisissez 1 petite amélioration parmi 3 pour la partie en cours (14 améliorations différentes, la plupart s’empilent).</li><li><b>Profils</b> : consultez les comptes des autres joueurs. Le badge OK bleu marque les comptes certifiés.</li><li><b>Skins</b> (Mon espace) : 3 skins sont débloqués au départ, les autres s’achètent. Changez aussi la couleur du maillot, des cheveux et du teint, et la coiffure.</li><li><b>Titres</b> (Mon espace) : tuez des zombies, ramassez des armes, allez loin… pour débloquer des titres aux styles différents (faciles ou très durs). Au départ vous n’en avez aucun. Équipez-en un dans « Personnaliser mon profil » ou dans la case Titres, qui montre aussi comment débloquer chacun.</li><li><b>Découvertes</b> : Mon espace garde la liste des armes, zombies et pouvoirs déjà trouvés. Le niveau de chaque arme et de chaque pouvoir y est affiché.</li><li><b>Info</b> et <b>Ciel SMP</b> : la case Info présente le créateur du jeu ; la case Ciel SMP montre le classement des meilleurs joueurs et leurs récompenses sur le serveur Minecraft Ciel SMP (top 3 et tous les autres).</li><li><b>Tactile</b> : stick virtuel pour bouger, tir automatique, touchez la case pouvoir pour l’utiliser.</li><li><b>Pause</b> : Échap · <b>Son</b> : M (effets sonores).</li></ul></div><button id="howMore" class="btn ghost sm">Afficher plus</button>`;
+const HOW = `<ul class="how"><li><b>Se déplacer</b> : flèches ou ZQSD / WASD.</li><li><b>Viser</b> : le canon suit votre curseur.</li><li><b>Tirer</b> : maintenez le clic gauche.</li><li><b>Esquive</b> : Maj ou Espace (recharge 1,6 s).</li><li><b>Pouvoir</b> : rare, lâché par certains zombies. Il apparaît dans la case à côté de votre barre de vie et s’utilise plusieurs fois. <b>Clic droit</b> (ou touche E) pour l’activer.</li></ul><div id="howExtra" class="hide"><ul class="how"><li><b>Tir</b> : le pistolet tire un coup par clic ; les armes automatiques tirent tant que vous maintenez.</li><li><b>Armes</b> : certains zombies lâchent une arme (les meilleures n’arrivent que dans les vagues avancées). Chaque arme a sa propre réserve de munitions, avec un maximum différent (le sniper et le railgun en portent peu, la mitraillette et le minigun beaucoup). Vos armes et leurs munitions s’affichent en petit sous la barre de vie ; l’arme choisie est entourée. Ramasser une arme déjà possédée ou une caisse MU recharge les réserves. <b>Changer d’arme</b> : touches 1 à 9, Q, molette de la souris, ou toucher une arme dans l’inventaire sous la barre de vie. Arme vide : vous passez à une autre arme chargée, sinon au couteau.</li><li><b>Bonus</b> : croix soin, bouclier, flèches vitesse, ×2 points, bombe, flocon gel (zombies ralentis), ! furie (tir ×2), caisse MU munitions, U aimant (attire les bonus).</li><li><b>Zombies</b> : chaque type rapporte des points différents. Méfiez-vous des cracheurs et des kamikazes.</li><li><b>Vagues</b> : elles deviennent de plus en plus dures jusqu’à la vague 100, avec plus de zombies au fil du temps, de nouveaux types dès les vagues 12 à 20 et un boss unique aux vagues 15, 25, 35, 45, 55, 65, 75, 85 et 100 (colosse toutes les 5 vagues, titan toutes les 10).</li><li><b>Combo</b> : enchaînez les kills pour des points et de l’argent en plus.</li><li><b>Argent</b> : vous en gagnez en direct en jouant, selon les zombies abattus, les combos, la distance parcourue et les vagues atteintes. Il s’affiche en haut à droite et est enregistré régulièrement.</li><li><b>Pouvoirs (12)</b> : Lasers, Onde de choc, Lames tournantes, Frappe aérienne, Tempête de balles, Soin de zone, Chrono, Barrière (invulnérable), Furie (tir ×2 et vitesse), Anneau de feu, Foudre (frappe les 8 zombies les plus proches) et Siphon (aspire la vie des zombies et vous soigne).</li><li><b>Boutique</b> (carte Argent) : achetez des skins.</li><li><b>Menu d’amélioration</b> (carte Argent) : toutes les armes et tous les pouvoirs sont là, jusqu’au niveau 5. Armes : +15 % de dégâts, tir plus rapide, +12 % de munitions par ramassage, balles perforantes au niveau 3. Pouvoirs : +15 % de puissance, +10 % de durée, +1 charge au niveau 3.</li><li><b>Améliorations de partie</b> : à la fin de chaque vague, choisissez 1 petite amélioration parmi 3 pour la partie en cours (14 améliorations différentes, la plupart s’empilent).</li><li><b>Profils</b> : consultez les comptes des autres joueurs. Le badge OK bleu marque les comptes certifiés.</li><li><b>Skins</b> (Mon espace) : 3 skins sont débloqués au départ, les autres s’achètent. Changez aussi la couleur du maillot, des cheveux et du teint, et la coiffure.</li><li><b>Titres</b> (Mon espace) : tuez des zombies, ramassez des armes, allez loin… pour débloquer des titres aux styles différents (faciles ou très durs). Au départ vous n’en avez aucun. Équipez-en un dans « Personnaliser mon profil » ou dans la case Titres, qui montre aussi comment débloquer chacun.</li><li><b>Découvertes</b> : Mon espace garde la liste des armes, zombies et pouvoirs déjà trouvés. Le niveau de chaque arme et de chaque pouvoir y est affiché.</li><li><b>Info</b> et <b>Ciel SMP</b> : la case Info présente le créateur du jeu ; la case Ciel SMP montre le classement des meilleurs joueurs et leurs récompenses sur le serveur Minecraft Ciel SMP (top 3 et tous les autres).</li><li><b>Tactile</b> : stick virtuel pour bouger, tir automatique, touchez la case pouvoir pour l’utiliser.</li><li><b>Pause</b> : Échap · <b>Son</b> : M (effets sonores).</li></ul></div><button id="howMore" class="btn ghost sm">Afficher plus</button>`;
 function icon(tab, o, d, id) {
   const c = document.createElement('canvas'); c.width = c.height = 96; const x = c.getContext('2d'); x.translate(48, 54);
   if (tab === 'z') headArt(x, id, o); else if (tab === 'q') { x.scale(2.4, 2.4); x.translate(0, -2); pArt(x, id, o.col); } else { x.translate(-3, -4); x.scale(1.05, 1.05); wArt(x, id, o.col); }
@@ -578,9 +591,14 @@ function upgrades() {
   curTab = 'a';
   const box = $('infoBody'), st = box.scrollTop; box.innerHTML = ''; box.className = 'grid2';
   $('infoT').textContent = 'Menu d’amélioration';
-  $('infoC').textContent = 'Argent : ' + fmt(cur.money) + ' $ · Armes : +15 % de dégâts, tir plus rapide, +12 % de munitions par ramassage, balles perforantes au niveau 3. Pouvoirs : +15 % de puissance, +10 % de durée, +1 charge au niveau 3.';
+  $('infoC').textContent = 'Argent : ' + fmt(cur.money) + ' $ · Armes : +15 % de dégâts, tir plus rapide, +12 % de munitions par ramassage, balles perforantes au niveau 3. Pouvoirs : +15 % de puissance, +10 % de durée, +1 charge au niveau 3. Les armes et pouvoirs grisés se débloquent en les trouvant en partie.';
   const card = (kind, id, o) => {
     const w = kind === 'w', lv = w ? wlv(id) : plv(id), cost = w ? wcost(id) : pcost(id);
+    if (!((w ? cur.dw : cur.dp) || []).includes(id)) {   /* pas encore débloquée : grisée, non améliorable */
+      const c = mk('div', 'cx lock'), t = mk('div'), b = mk('b', '', '???'), e = mk('button', 'mini', 'Verrouillée');
+      const q = mk('small', '', w ? 'Arme verrouillée : trouvez-la sur un zombie' + (o.tier ? ' (à partir de la vague ' + o.tier + ')' : '') + '.' : 'Pouvoir verrouillé : ramassez-le en partie pour le débloquer.');
+      e.disabled = true; t.append(b, q, e); c.append(icon(w ? 'w' : 'q', o, false, id), t); box.appendChild(c); return;
+    }
     const c = mk('div', 'cx'), t = mk('div'), e = mk('button', 'mini'), b = mk('b', '', o.name);
     const q = mk('small', '', w ? 'Niveau ' + lv + ' / ' + MAXLV + ' · dégâts ×' + (1 + .15 * lv).toFixed(2)
       : 'Niveau ' + lv + ' / ' + MAXLV + ' · puissance ×' + (1 + .15 * lv).toFixed(2) + (o.dur ? ' · durée ' + +(o.dur * (1 + .1 * lv)).toFixed(1) + ' s' : '') + ' · ' + (o.n + (lv >= 3 ? 1 : 0)) + ' charges');
@@ -596,9 +614,10 @@ function upgrades() {
     t.append(b, q, e); c.append(icon(w ? 'w' : 'q', o, true, id), t); box.appendChild(c);
   };
   box.appendChild(mk('div', 'sec', 'Armes'));
-  for (const id of Object.keys(WP)) card('w', id, WP[id]);
+  const srt = (list, got) => Object.keys(list).sort((a, b) => (got.includes(b) - got.includes(a)) || ((list[a].tier || 0) - (list[b].tier || 0)));
+  for (const id of srt(WP, cur.dw || [])) card('w', id, WP[id]);
   box.appendChild(mk('div', 'sec', 'Pouvoirs'));
-  for (const id of Object.keys(PW)) card('q', id, PW[id]);
+  for (const id of srt(PW, cur.dp || [])) card('q', id, PW[id]);
   show('info'); box.scrollTop = st;
 }
 /* ---------- Contacter le staff : message privé, bugs, idées ---------- */
@@ -921,7 +940,17 @@ Object.assign(WP, {
   launcher: { name: 'Lance-grenades', ab: 'LG', rate: .9, dmg: 2, n: 1, sp: .02, v: 520, life: .9, auto: false, pl: 0, ammo: 14, col: '#ff9a3c', ex: { r: 90, d: 7 }, desc: 'Grenades explosives : dégâts de zone.' },
   autoshot: { name: 'Fusil à pompe auto', ab: 'FPA', rate: .32, dmg: 1.1, n: 5, sp: .45, v: 700, life: .45, auto: true, pl: 0, ammo: 60, col: '#ff6a3a', desc: 'Pompe automatique : gerbe dévastatrice en continu.' }
 });
-Object.entries({ revolver: 1, smg: 2, dual: 2, shotgun: 3, crossbow: 4, rifle: 5, flame: 6, sniper: 7, launcher: 8, plasma: 9, mini: 10, autoshot: 11, railgun: 12 }).forEach(([k, v]) => WP[k].tier = v);
+Object.assign(WP, {
+  magnum:  { name: 'Magnum', ab: 'MA', rate: .6, dmg: 5, n: 1, sp: .01, v: 900, life: .9, auto: false, pl: 1, ammo: 24, col: '#ffcf5a', desc: 'Gros calibre : 5 de dégâts par balle, traverse 2 zombies.' },
+  duo:     { name: 'Fusil double canon', ab: 'DC', rate: 1, dmg: 1.5, n: 10, sp: .6, v: 700, life: .4, auto: false, pl: 0, ammo: 20, col: '#ff8f4a', desc: 'Double décharge de 10 plombs : dévastateur de près.' },
+  lmg:     { name: 'Mitrailleuse lourde', ab: 'ML', rate: .075, dmg: 1.5, n: 1, sp: .08, v: 900, life: .9, auto: true, pl: 1, ammo: 220, col: '#c9d65a', desc: 'Cadence élevée, balles lourdes qui traversent 2 zombies.' },
+  rocket:  { name: 'Lance-roquettes', ab: 'LR', rate: 1.3, dmg: 4, n: 1, sp: .01, v: 600, life: 1.1, auto: false, pl: 0, ammo: 8, col: '#ff5a3a', ex: { r: 150, d: 16 }, desc: 'Roquette à grosse explosion : ravage les groupes.' },
+  laser:   { name: 'Fusil laser', ab: 'FL', rate: .07, dmg: 1.6, n: 1, sp: .02, v: 1300, life: .7, auto: true, pl: 4, ammo: 300, col: '#ff6ad5', desc: 'Faisceau très rapide qui perfore jusqu’à 5 zombies.' },
+  gauss:   { name: 'Canon Gauss', ab: 'GA', rate: .8, dmg: 24, n: 1, sp: 0, v: 1500, life: 1, auto: false, pl: 14, ammo: 8, col: '#9bf0ff', desc: 'Un tir électromagnétique qui transperce jusqu’à 15 zombies.' },
+  disint:  { name: 'Désintégrateur', ab: 'DE', rate: .35, dmg: 8, n: 1, sp: .03, v: 1000, life: .9, auto: true, pl: 6, ammo: 60, col: '#c8ff4a', ex: { r: 70, d: 6 }, desc: 'L’arme ultime : tir automatique perforant avec petite explosion.' }
+});
+/* Armes débloquées dans les vagues avancées : numéro = première vague où elles peuvent tomber */
+Object.entries({ revolver: 3, smg: 4, dual: 5, shotgun: 6, crossbow: 8, rifle: 9, flame: 11, sniper: 12, magnum: 13, launcher: 14, duo: 15, plasma: 17, mini: 18, lmg: 20, autoshot: 22, rocket: 24, railgun: 26, laser: 29, gauss: 32, disint: 36 }).forEach(([k, v]) => WP[k].tier = v);
 const BONUS = { heal: { s: '+', c: '#5fd6a0', n: 'Soin' }, ammo: { s: 'MU', c: '#ffd27a', n: 'Munitions' }, freeze: { s: '*', c: '#9be7ff', n: 'Gel' }, rage: { s: '!', c: '#ff8a3a', n: 'Furie' }, shield: { s: '◈', c: '#7fb8ff', n: 'Bouclier' }, speed: { s: '»', c: '#ffd24a', n: 'Vitesse' }, x2: { s: '×2', c: '#ff7ad9', n: 'Points ×2' }, nuke: { s: '✸', c: '#ff4d5e', n: 'Bombe' }, magnet: { s: 'U', c: '#c0b8ff', n: 'Aimant' } };
 /* ---------- v5 : pouvoirs, skins, argent, sang ---------- */
 const LASER = 820;
@@ -1255,6 +1284,7 @@ const MAP = { ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r', ArrowUp: 'u
 addEventListener('keydown', e => {
   if (e.code === 'KeyM' && G.playing) { toggleSnd(); return; }
   if (e.code === 'KeyQ' && G.playing && !G.paused) { cycleWp(1); return; }
+  if (/^Digit[1-9]$/.test(e.code) && G.playing && !G.paused) { const id = ownedList()[+e.code.slice(5) - 1]; if (id) selectWp(id); return; }
   if (e.code === 'KeyE' && G.playing && !G.paused) { usePower(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') { if (G.playing && !G.perk) setPause(!G.paused); return; }
   if (MAP[e.code] && G.playing) { K[MAP[e.code]] = 1; e.preventDefault(); }
@@ -1330,7 +1360,8 @@ function pushOut(o, r) {
 }
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const BP = ['freeze', 'rage', 'ammo', 'ammo', 'ammo', 'ammo', 'heal', 'heal', 'heal', 'shield', 'shield', 'speed', 'speed', 'x2', 'x2', 'nuke', 'magnet', 'magnet'];
-const pickWeapon = rare => { const l = Object.keys(WP).filter(k => WP[k].tier && WP[k].tier <= G.wave).sort((a, b) => WP[a].tier - WP[b].tier); return rare ? pick(l.slice(-3)) : pick(l.slice(0, Math.max(2, Math.ceil(l.length * .7)))); };
+/* Une arme ne tombe qu'à partir de sa vague (tier) : aucune arme avant la vague 3. */
+const pickWeapon = rare => { const l = Object.keys(WP).filter(k => WP[k].tier && WP[k].tier <= G.wave).sort((a, b) => WP[a].tier - WP[b].tier); if (!l.length) return null; return rare ? pick(l.slice(-3)) : pick(l.slice(0, Math.max(2, Math.ceil(l.length * .7)))); };
 const _old = rare => pick(rare ? ['rifle', 'sniper', 'sniper', 'mini', 'mini', 'shotgun'] : ['smg', 'smg', 'smg', 'shotgun', 'shotgun', 'rifle', 'rifle', 'sniper', 'mini']);
 function hurt(d) { const p = G.p; if (G.tmr.shield > 0) return; p.hp -= d * G.df.dm * (1 - .03 * G.pk.ar); p.hit = .25; shake = Math.max(shake, 7); sfx('hurt'); }
 function boom(z) {
@@ -1339,7 +1370,7 @@ function boom(z) {
   G.z.forEach(o => { if (o !== z && Math.hypot(o.x - z.x, o.y - z.y) < 95) o.hp -= 8; });
 }
 /* ---------- Munitions : chaque arme a SA réserve et SON maximum ---------- */
-const MAXAM = { pistol: 90, revolver: 48, smg: 160, dual: 160, shotgun: 32, autoshot: 64, rifle: 120, crossbow: 28, sniper: 20, launcher: 16, plasma: 90, flame: 300, mini: 360, railgun: 12 };
+const MAXAM = { pistol: 90, revolver: 48, smg: 160, dual: 160, shotgun: 32, autoshot: 64, rifle: 120, crossbow: 28, sniper: 20, launcher: 16, plasma: 90, flame: 300, mini: 360, railgun: 12, magnum: 30, duo: 24, lmg: 260, rocket: 10, laser: 340, gauss: 10, disint: 70 };
 const PICK_PCT = .5, BOX_PCT = .35;   /* arme ramassée : 50 % du max · caisse MU : 35 % du max de chaque arme */
 const ammoOf = id => id === 'knife' ? Infinity : (G.am[id] || 0);
 function lowAmmo() { return G.wp === 'knife' || ammoOf(G.wp) < maxAm(G.wp) * .25; }
@@ -1358,14 +1389,40 @@ function cycleWp(dir) {
   setWp(l[(Math.max(0, l.indexOf(g.wp)) + dir + l.length) % l.length]); g.p.cd = Math.max(g.p.cd, .15); sfx('pick');
   g.ft.push({ x: g.p.x, y: g.p.y - 30, t: 1, s: WP[g.wp].name, c: WP[g.wp].col });
 }
+function selectWp(id) {
+  const g = G; if (!g.playing || g.paused || id === g.wp || !ownedList().includes(id)) return;
+  setWp(id); g.p.cd = Math.max(g.p.cd, .15); sfx('pick');
+  g.ft.push({ x: g.p.x, y: g.p.y - 30, t: 1, s: WP[id].name, c: WP[id].col });
+}
+/* Inventaire discret sous la barre de vie : nom + munitions de chaque arme, contour sur l'arme choisie */
+const INV = { sig: '', el: {} };
+function invDraw() {
+  const g = G, box = $('inv'), l = ownedList(), sig = l.join(',');
+  if (sig !== INV.sig) {
+    INV.sig = sig; INV.el = {}; box.replaceChildren();
+    l.forEach((id, i) => {
+      const c = mk('div', 'ic'), a = mk('b', 'ia');
+      c.style.setProperty('--wc', WP[id].col); c.setAttribute('role', 'button');
+      if (i < 9) c.append(mk('i', 'ik', String(i + 1)));
+      c.append(mk('span', 'in', WP[id].name), a);
+      c.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); selectWp(id); });
+      box.appendChild(c); INV.el[id] = { c, a, k: null };
+    });
+  }
+  for (const id of l) {
+    const o = INV.el[id], am = id === 'knife' ? '∞' : g.am[id], low = id !== 'knife' && am < maxAm(id) * .25, sel = id === g.wp, k = am + '|' + low + '|' + sel;
+    if (o.k !== k) { o.k = k; o.a.textContent = am; o.c.classList.toggle('sel', sel); o.c.classList.toggle('low', low); o.c.setAttribute('aria-pressed', sel); }
+  }
+}
 function outOfAmmo() {
   const g = G; g.am[g.wp] = 0; const nx = ownedList().filter(id => id !== 'knife').pop(); g.p.cd = Math.max(g.p.cd, .2);
   if (nx) { setWp(nx); g.ft.push({ x: g.p.x, y: g.p.y - 30, t: 1.4, s: 'Plus de munitions : ' + WP[nx].name, c: '#ff4d5e' }); }
   else { g.wp = 'knife'; g.ft.push({ x: g.p.x, y: g.p.y - 30, t: 1.4, s: 'Plus de munitions : couteau', c: '#ff4d5e' }); }
 }
 function dropFrom(z) {
-  const low = lowAmmo(), rw = (z.big ? 1 : z.t === 'brute' ? .6 : z.t === 'tank' ? .4 : z.t === 'juggernaut' ? .5 : .07) + (low ? .04 : 0);
-  if (Math.random() < rw) G.dr.push({ x: z.x + rnd(-10, 10), y: z.y, k: 'w', id: pickWeapon(z.big || z.t === 'brute'), l: 20 });
+  const low = lowAmmo(), rw = (z.big ? 1 : z.t === 'brute' ? .4 : z.t === 'tank' ? .28 : z.t === 'juggernaut' ? .35 : .035) + (low ? .02 : 0);
+  const wid = Math.random() < rw ? pickWeapon(z.big || z.t === 'brute') : null;
+  if (wid) G.dr.push({ x: z.x + rnd(-10, 10), y: z.y, k: 'w', id: wid, l: 20 });
   else if (Math.random() < .22 * (1 + .1 * G.pk.lt)) G.dr.push({ x: z.x, y: z.y, k: 'b', id: low && Math.random() < .4 ? 'ammo' : pick(BP), l: 18 });
   if (z.big) G.dr.push({ x: z.x + 34, y: z.y, k: 'b', id: 'heal', l: 20 });
   const pr = z.big ? 1 : z.t === 'brute' ? .16 : z.t === 'tank' ? .07 : .012;
@@ -1538,6 +1595,7 @@ function update(dt) {
   if (g.brk > 0) { g.brk -= dt; if (g.brk <= 0) nextWave(); }
   $('cash').textContent = fmt((cur.money || 0) + g.cash - g.cs); $('sc').textContent = g.score; $('kl').textContent = g.kills; $('rem').textContent = g.spawnLeft + g.z.length;
   $('wv').textContent = 'Vague ' + g.wave; $('hp').style.width = Math.max(0, p.hp / p.mhp * 100) + '%'; $('hpn').textContent = Math.max(0, Math.ceil(p.hp)) + ' / ' + p.mhp;
+  invDraw(); pwUI();
   $('wpn').textContent = w.name + (wlv(g.wp) ? ' Niv.' + wlv(g.wp) : '') + (g.wp === 'knife' ? ' · Sans munitions (couteau)' : ' · Munitions ' + g.am[g.wp] + ' / ' + maxAm(g.wp));
   const bt = []; for (const k of ['shield', 'speed', 'x2', 'freeze', 'rage', 'magnet']) if (g.tmr[k] > 0) bt.push(BONUS[k].n + ' ' + Math.ceil(g.tmr[k]) + ' s');
   if (g.combo >= 3) bt.push('Combo ×' + g.combo); bt.push(g.dc > 0 ? 'Esquive ' + g.dc.toFixed(1) + ' s' : 'Esquive prête');
@@ -1693,6 +1751,13 @@ function shotSfx(id) {
   else if (id === 'shotgun') { noise(.25, .4, 1500); tone(90, .2, 'sawtooth', .15, .4); }
   else if (id === 'sniper' || id === 'railgun') { noise(.3, .3, 4000); tone(id === 'railgun' ? 900 : 200, .35, 'sawtooth', .12, id === 'railgun' ? .2 : .3); }
   else if (id === 'plasma') tone(500, .15, 'sawtooth', .08, 2.5);
+  else if (id === 'rocket') { noise(.3, .35, 900); tone(70, .3, 'sawtooth', .18, .4); }
+  else if (id === 'gauss') { noise(.3, .3, 4500); tone(1100, .35, 'sawtooth', .12, .15); }
+  else if (id === 'laser') tone(900, .08, 'sawtooth', .06, .6);
+  else if (id === 'disint') tone(420, .12, 'sawtooth', .08, 2);
+  else if (id === 'lmg') noise(.05, .16, 2200);
+  else if (id === 'duo') { noise(.3, .45, 1300); tone(80, .22, 'sawtooth', .16, .4); }
+  else if (id === 'magnum') { noise(.1, .3, 2500); tone(150, .14, 'square', .09, .4); }
   else if (id === 'flame') noise(.12, .12, 900);
   else if (id === 'crossbow') tone(220, .12, 'triangle', .12, .4);
   else if (id === 'mini' || id === 'smg') noise(.04, .12, 2500);
@@ -1722,6 +1787,13 @@ function wArt(x, id, c) {
     case 'dual': R(-10, -13, 30, 7); R(-10, 6, 30, 7); dk(); R(-10, -6, 9, 12); break;
     case 'launcher': R(-26, -8, 52, 16); dk(); R(-12, 8, 9, 12); x.fillStyle = '#ffd24a'; R(26, -10, 6, 20); break;
     case 'autoshot': R(-26, -8, 54, 10); R(-26, 2, 54, 5); dk(); R(-36, -6, 10, 12); R(-4, 7, 10, 12); break;
+    case 'magnum': R(-6, -8, 36, 7); dk(); R(-16, -2, 12, 17); x.fillStyle = c; R(-8, -11, 6, 4); break;
+    case 'duo': R(-26, -9, 52, 5); R(-26, -3, 52, 5); dk(); R(-38, -6, 11, 11); R(-4, 4, 12, 12); break;
+    case 'lmg': R(-26, -8, 44, 10); R(18, -6, 14, 5); dk(); R(-8, 2, 8, 12); R(-38, -6, 12, 9); R(-22, -13, 22, 5); break;
+    case 'rocket': R(-30, -9, 56, 18); dk(); R(-14, 9, 9, 11); x.fillStyle = '#ff4d2e'; x.beginPath(); x.moveTo(26, -9); x.lineTo(40, 0); x.lineTo(26, 9); x.closePath(); x.fill(); x.stroke(); x.fillStyle = '#ffd24a'; R(-30, -9, 6, 18); break;
+    case 'laser': R(-26, -8, 44, 14); x.fillStyle = '#fff0fb'; x.fillRect(-14, -3, 34, 4); x.beginPath(); x.arc(22, -1, 6, 0, 7); x.fill(); x.stroke(); dk(); R(-12, 6, 9, 12); R(-34, -6, 8, 10); break;
+    case 'gauss': R(-34, -10, 70, 6); R(-34, 4, 70, 6); dk(); R(-38, -12, 10, 26); x.fillStyle = '#e8fdff'; for (let i = 0; i < 4; i++) x.fillRect(-20 + i * 13, -3, 6, 6); dk(); R(-10, 10, 8, 10); break;
+    case 'disint': R(-26, -10, 40, 20); x.beginPath(); x.arc(20, 0, 13, 0, 7); x.fill(); x.stroke(); x.fillStyle = '#f4ffd0'; x.beginPath(); x.arc(20, 0, 6, 0, 7); x.fill(); dk(); R(-14, 10, 9, 11); R(-34, -6, 8, 12); break;
     default: R(-12, -8, 32, 8);
   }
 }
