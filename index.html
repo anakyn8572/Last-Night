@@ -162,6 +162,39 @@ label.chk{display:flex;align-items:center;gap:8px;margin-top:-4px}label.chk inpu
 .ciel .lb{margin-top:6px}
 .note{color:var(--mute);font-size:13px;line-height:1.45}
 .apropos p{line-height:1.55;color:var(--txt)}
+
+/* v8 : titres, changement d'arme */
+#wpn{pointer-events:auto;cursor:pointer}
+.ttl{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;border:1px solid var(--line);background:#0e1a2e;color:var(--txt);font:400 11px Impact,"Arial Black",sans-serif;letter-spacing:.05em;white-space:nowrap;vertical-align:middle;line-height:1.5;text-shadow:none}
+.ttl.lg{font-size:16px;padding:4px 16px}
+.ttl.bronze{color:#e8a874;border-color:#b87333;background:rgba(184,115,51,.16)}
+.ttl.silver{color:#e3e8f0;border-color:#a8b2c4;background:rgba(168,178,196,.16)}
+.ttl.green{color:#5fd6a0;border-color:#3f9a74;background:rgba(95,214,160,.12)}
+.ttl.blue{color:#7fb8ff;border-color:#4a86d0;background:rgba(127,184,255,.12)}
+.ttl.purple{color:#c9a0ff;border-color:#8a5ad0;background:rgba(181,124,255,.14);box-shadow:0 0 8px rgba(181,124,255,.3)}
+.ttl.red{color:#ff8a96;border-color:#d04050;background:rgba(255,77,94,.13)}
+.ttl.gold{color:#ffd24a;border-color:#ffd24a;background:rgba(255,210,74,.13);box-shadow:0 0 10px rgba(255,210,74,.35)}
+.ttl.fire{color:#fff;border-color:#ffb347;background:linear-gradient(90deg,#ff4d2e,#ff9a3c,#ffd24a);text-shadow:0 1px 2px rgba(0,0,0,.55);box-shadow:0 0 12px rgba(255,122,47,.55)}
+.ttl.ice{color:#06223a;border-color:#bff3ff;background:linear-gradient(90deg,#7fe3ff,#b8d4ff,#7fe3ff);box-shadow:0 0 12px rgba(127,227,255,.5)}
+.ttl.toxic{color:#10230a;border-color:#d7f58a;background:linear-gradient(90deg,#7fd24a,#d7f58a);box-shadow:0 0 12px rgba(155,210,74,.5)}
+.ttl.blood{color:#ffd6da;border-color:#ff4d5e;background:linear-gradient(90deg,#5a0a14,#a3121f);box-shadow:0 0 12px rgba(255,77,94,.55);text-shadow:0 1px 2px #000}
+.ttl.shadow{color:#cbb8ff;border-color:#6a4fd0;background:linear-gradient(90deg,#14101f,#2a1f4a);box-shadow:0 0 10px rgba(106,79,208,.5)}
+.ttl.cert{color:#fff;border-color:#8cc0ff;background:linear-gradient(90deg,#1f5fd0,#2f8cff);box-shadow:0 0 10px rgba(47,140,255,.5)}
+.ttl.royal{color:#3a2400;border-color:#fff1b0;background:linear-gradient(110deg,#b8860b,#ffe27a,#b8860b);background-size:200% 100%;animation:shine 3s linear infinite;box-shadow:0 0 14px rgba(255,210,74,.6)}
+.ttl.rainbow{color:#14101a;border-color:#fff;background:linear-gradient(90deg,#ff4d5e,#ffb347,#ffd24a,#5fd6a0,#7fb8ff,#b57cff,#ff4d5e);background-size:200% 100%;animation:shine 3s linear infinite;box-shadow:0 0 14px rgba(181,124,255,.5)}
+@keyframes shine{to{background-position:200% 0}}
+@media(prefers-reduced-motion:reduce){.ttl.royal,.ttl.rainbow{animation:none}}
+.trow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#0e1a2e}
+.trow.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
+.trow>.ttl{flex:none;min-width:120px;justify-content:center}
+.trow .tx{flex:1;min-width:150px}.trow .tx small{display:block;color:var(--mute);font-size:12px;margin-top:3px}
+.trow .tx small:first-child{color:var(--txt);font-size:13px;margin-top:0}
+.trow .tx .okt{color:var(--ok)}
+.trow .mini{margin-top:0}
+.trow.lock>.ttl{filter:grayscale(1);opacity:.5;animation:none;box-shadow:none}
+.pbar{height:6px;border-radius:4px;background:#1c2a44;margin-top:6px;overflow:hidden}.pbar i{display:block;height:100%;background:var(--acc);border-radius:4px}
+.sw button.tb{width:auto;height:auto;border-radius:10px;border:1px solid var(--line);background:#0e1a2e;padding:5px 6px}
+.sw button.tb.on{border-color:var(--acc);box-shadow:0 0 0 2px rgba(255,122,47,.4)}
 </style></head><body>
 <canvas id="c"></canvas><div id="vig"></div>
 <div id="hud" class="hide">
@@ -188,7 +221,7 @@ label.chk{display:flex;align-items:center;gap:8px;margin-top:-4px}label.chk inpu
 <section id="menu" class="screen hide">
   <div class="col">
     <div class="card wallet"><small>Mon argent</small><div class="amt"><b id="mon">0</b> <span>$</span></div><small>Gagné en tuant des zombies, en enchaînant les combos et en allant loin.</small><button class="btn ghost" data-i="b">Boutique</button><button class="btn ghost" data-i="a">Menu d’amélioration</button></div>
-    <div class="card"><h2>Mon espace</h2><button class="btn ghost" data-i="p">Mon profil</button><button class="btn ghost" data-i="k">Skins</button><button class="btn ghost" data-i="s">Statistiques</button></div>
+    <div class="card"><h2>Mon espace</h2><button class="btn ghost" data-i="p">Mon profil</button><button class="btn ghost" data-i="k">Skins</button><button class="btn ghost" data-i="t">Titres</button><button class="btn ghost" data-i="s">Statistiques</button></div>
     <div class="card"><h2>Découvertes</h2><button class="btn ghost" data-i="w">Armes découvertes</button><button class="btn ghost" data-i="z">Zombies découverts</button><button class="btn ghost" data-i="q">Pouvoirs découverts</button></div>
     <div class="card"><h2>Communauté</h2><button class="btn ghost" data-i="v">Regarder les profils</button></div>
     
@@ -203,7 +236,7 @@ label.chk{display:flex;align-items:center;gap:8px;margin-top:-4px}label.chk inpu
   <div class="col"><div class="sqs"><button class="sq" data-i="n"><b>Info</b><small>À propos du jeu</small></button><button class="sq" data-i="c"><b>Ciel SMP</b><small>Classement et récompenses</small></button></div><div class="card lb"><h2>Classement</h2><small class="net"></small><ol id="lb"></ol></div><div class="card how-card"><h2>Comment jouer</h2><div id="howBox"></div></div></div>
 </section>
 <section id="over" class="screen hide">
-  <div class="card"><h2>Vous êtes tombé</h2><div class="big" id="fs">0</div><p id="fd"></p><p id="fc" class="gain"></p>
+  <div class="card"><h2>Vous êtes tombé</h2><div class="big" id="fs">0</div><p id="fd"></p><p id="fc" class="gain"></p><p id="ft" class="gain"></p>
     <button id="btnAgain" class="btn">Rejouer</button><button id="btnMenu" class="btn ghost">Menu et classement</button></div>
   <div class="card lb"><h2>Classement</h2><small class="net"></small><ol id="lb2"></ol></div>
 </section>
@@ -295,7 +328,7 @@ async function renderLB(el, rw) {
   if (!a.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Aucun score pour l’instant. Soyez le premier.'; el.appendChild(li); return; }
   a.forEach((v, i) => {
     const li = document.createElement('li'); if (cur && v.name === cur.name) li.className = 'me';
-    const s = document.createElement('span'); s.textContent = v.name; if (v.cert) s.append(' ', certEl()); li.style.cursor = 'pointer'; li.onclick = () => inspect(keyOf(v.name), rw ? cielPage : undefined);
+    const s = document.createElement('span'); s.textContent = v.name; if (v.cert) s.append(' ', certEl()); if (tiOf(v)) s.append(' ', ttlEl(v.ti)); li.style.cursor = 'pointer'; li.onclick = () => inspect(keyOf(v.name), rw ? cielPage : undefined);
     if (rw) { const r = document.createElement('small'); r.className = 'rw'; r.textContent = cielRw(i) + ' (Ciel SMP)'; s.appendChild(r); }
     const b = document.createElement('b'); b.textContent = v.best; li.append(avEl(v, 28), s, b); el.appendChild(li);
   });
@@ -344,7 +377,7 @@ async function login() {
   } catch (e) { setErr('Erreur de connexion. Réessayez.'); }
   finally { $('btnLogin').disabled = false; }
 }
-const HOW = `<ul class="how"><li><b>Se déplacer</b> : flèches ou ZQSD / WASD.</li><li><b>Viser</b> : le canon suit votre curseur.</li><li><b>Tirer</b> : maintenez le clic gauche.</li><li><b>Esquive</b> : Maj ou Espace (recharge 1,6 s).</li><li><b>Pouvoir</b> : rare, lâché par certains zombies. Il apparaît dans la case à côté de votre barre de vie et s’utilise plusieurs fois. <b>Clic droit</b> (ou touche E) pour l’activer.</li></ul><div id="howExtra" class="hide"><ul class="how"><li><b>Tir</b> : le pistolet tire un coup par clic ; les armes automatiques tirent tant que vous maintenez.</li><li><b>Armes</b> : certains zombies lâchent une arme (les meilleures n’arrivent que dans les vagues avancées). Sans munitions, vous passez au couteau : ramassez une arme ou une caisse MU.</li><li><b>Bonus</b> : croix soin, bouclier, flèches vitesse, ×2 points, bombe, flocon gel (zombies ralentis), ! furie (tir ×2), caisse MU munitions, U aimant (attire les bonus).</li><li><b>Zombies</b> : chaque type rapporte des points différents. Méfiez-vous des cracheurs et des kamikazes.</li><li><b>Combo</b> : enchaînez les kills pour des points et de l’argent en plus.</li><li><b>Argent</b> : vous en gagnez à chaque partie, selon les zombies abattus, les combos, la distance parcourue et les vagues atteintes. Il est ajouté à la fin de la partie.</li><li><b>Pouvoirs (12)</b> : Lasers, Onde de choc, Lames tournantes, Frappe aérienne, Tempête de balles, Soin de zone, Chrono, Barrière (invulnérable), Furie (tir ×2 et vitesse), Anneau de feu, Foudre (frappe les 8 zombies les plus proches) et Siphon (aspire la vie des zombies et vous soigne).</li><li><b>Boutique</b> (carte Argent) : achetez des skins.</li><li><b>Menu d’amélioration</b> (carte Argent) : toutes les armes et tous les pouvoirs sont là, jusqu’au niveau 5. Armes : +15 % de dégâts, tir plus rapide, +12 % de munitions, balles perforantes au niveau 3. Pouvoirs : +15 % de puissance, +10 % de durée, +1 charge au niveau 3.</li><li><b>Améliorations de partie</b> : aux vagues 2, 4, 7, 10… choisissez 1 amélioration parmi 3 pour la partie en cours.</li><li><b>Profils</b> : consultez les comptes des autres joueurs. Le badge OK bleu marque les comptes certifiés.</li><li><b>Skins</b> (Mon espace) : 3 skins sont débloqués au départ, les autres s’achètent. Changez aussi la couleur du maillot, des cheveux et du teint, et la coiffure.</li><li><b>Découvertes</b> : Mon espace garde la liste des armes, zombies et pouvoirs déjà trouvés. Le niveau de chaque arme et de chaque pouvoir y est affiché.</li><li><b>Info</b> et <b>Ciel SMP</b> : la case Info présente le créateur du jeu ; la case Ciel SMP montre le classement des meilleurs joueurs et leurs récompenses sur le serveur Minecraft Ciel SMP (top 3 et tous les autres).</li><li><b>Tactile</b> : stick virtuel pour bouger, tir automatique, touchez la case pouvoir pour l’utiliser.</li><li><b>Pause</b> : Échap · <b>Son</b> : M (effets sonores).</li></ul></div><button id="howMore" class="btn ghost sm">Afficher plus</button>`;
+const HOW = `<ul class="how"><li><b>Se déplacer</b> : flèches ou ZQSD / WASD.</li><li><b>Viser</b> : le canon suit votre curseur.</li><li><b>Tirer</b> : maintenez le clic gauche.</li><li><b>Esquive</b> : Maj ou Espace (recharge 1,6 s).</li><li><b>Pouvoir</b> : rare, lâché par certains zombies. Il apparaît dans la case à côté de votre barre de vie et s’utilise plusieurs fois. <b>Clic droit</b> (ou touche E) pour l’activer.</li></ul><div id="howExtra" class="hide"><ul class="how"><li><b>Tir</b> : le pistolet tire un coup par clic ; les armes automatiques tirent tant que vous maintenez.</li><li><b>Armes</b> : certains zombies lâchent une arme (les meilleures n’arrivent que dans les vagues avancées). Les munitions s’accumulent : ramasser une arme que vous avez déjà ajoute ses munitions, et en prendre une autre ne fait pas perdre celles de l’ancienne (affichées entre crochets). <b>Changer d’arme</b> : Q, molette de la souris ou toucher le nom de l’arme. Sans munitions, vous passez à une autre arme chargée, puis au couteau : ramassez une arme ou une caisse MU.</li><li><b>Bonus</b> : croix soin, bouclier, flèches vitesse, ×2 points, bombe, flocon gel (zombies ralentis), ! furie (tir ×2), caisse MU munitions, U aimant (attire les bonus).</li><li><b>Zombies</b> : chaque type rapporte des points différents. Méfiez-vous des cracheurs et des kamikazes.</li><li><b>Combo</b> : enchaînez les kills pour des points et de l’argent en plus.</li><li><b>Argent</b> : vous en gagnez à chaque partie, selon les zombies abattus, les combos, la distance parcourue et les vagues atteintes. Il est ajouté à la fin de la partie.</li><li><b>Pouvoirs (12)</b> : Lasers, Onde de choc, Lames tournantes, Frappe aérienne, Tempête de balles, Soin de zone, Chrono, Barrière (invulnérable), Furie (tir ×2 et vitesse), Anneau de feu, Foudre (frappe les 8 zombies les plus proches) et Siphon (aspire la vie des zombies et vous soigne).</li><li><b>Boutique</b> (carte Argent) : achetez des skins.</li><li><b>Menu d’amélioration</b> (carte Argent) : toutes les armes et tous les pouvoirs sont là, jusqu’au niveau 5. Armes : +15 % de dégâts, tir plus rapide, +12 % de munitions, balles perforantes au niveau 3. Pouvoirs : +15 % de puissance, +10 % de durée, +1 charge au niveau 3.</li><li><b>Améliorations de partie</b> : aux vagues 2, 4, 7, 10… choisissez 1 amélioration parmi 3 pour la partie en cours.</li><li><b>Profils</b> : consultez les comptes des autres joueurs. Le badge OK bleu marque les comptes certifiés.</li><li><b>Skins</b> (Mon espace) : 3 skins sont débloqués au départ, les autres s’achètent. Changez aussi la couleur du maillot, des cheveux et du teint, et la coiffure.</li><li><b>Titres</b> (Mon espace) : tuez des zombies, ramassez des armes, allez loin… pour débloquer des titres aux styles différents (faciles ou très durs). Au départ vous n’en avez aucun. Équipez-en un dans « Personnaliser mon profil » ou dans la case Titres, qui montre aussi comment débloquer chacun.</li><li><b>Découvertes</b> : Mon espace garde la liste des armes, zombies et pouvoirs déjà trouvés. Le niveau de chaque arme et de chaque pouvoir y est affiché.</li><li><b>Info</b> et <b>Ciel SMP</b> : la case Info présente le créateur du jeu ; la case Ciel SMP montre le classement des meilleurs joueurs et leurs récompenses sur le serveur Minecraft Ciel SMP (top 3 et tous les autres).</li><li><b>Tactile</b> : stick virtuel pour bouger, tir automatique, touchez la case pouvoir pour l’utiliser.</li><li><b>Pause</b> : Échap · <b>Son</b> : M (effets sonores).</li></ul></div><button id="howMore" class="btn ghost sm">Afficher plus</button>`;
 function icon(tab, o, d, id) {
   const c = document.createElement('canvas'); c.width = c.height = 96; const x = c.getContext('2d'); x.translate(48, 54);
   if (tab === 'z') headArt(x, id, o); else if (tab === 'q') { x.scale(2.4, 2.4); x.translate(0, -2); pArt(x, id, o.col); } else { x.translate(-3, -4); x.scale(1.05, 1.05); wArt(x, id, o.col); }
@@ -374,7 +407,7 @@ function info(tab) {
   $('infoBody').scrollTop = 0;
   curTab = tab; setBack(null);
   if (tab === 's') return stats(); if (tab === 'p') return profHome(); if (tab === 'k') return skins(); if (tab === 'b') return shop();
-  if (tab === 'a') return upgrades(); if (tab === 'v') return userList(); if (tab === 'n') return infoPage(); if (tab === 'c') return cielPage();
+  if (tab === 't') return titlesPage(); if (tab === 'a') return upgrades(); if (tab === 'v') return userList(); if (tab === 'n') return infoPage(); if (tab === 'c') return cielPage();
   const box = $('infoBody'); box.innerHTML = ''; box.className = 'grid2';
   const L = { w: ['Armes découvertes', WP, 'dw', 'wk'], z: ['Zombies découverts', TYPES, 'dz', 'zk'], q: ['Pouvoirs découverts', PW, 'dp', 'pk'] }[tab];
   $('infoT').textContent = L[0];
@@ -413,7 +446,18 @@ function profile() {
   const bl = document.createElement('small'); bl.textContent = 'Présentation (60 caractères max) :';
   const bi = document.createElement('input'); bi.maxLength = 60; bi.value = cur.bio || ''; bi.placeholder = 'Ex : chasseur de colosses';
   const bs = document.createElement('button'); bs.className = 'btn ghost'; bs.textContent = 'Enregistrer la présentation'; bs.onclick = async () => { cur.bio = bi.value.trim().slice(0, 60); await putUser(ckey, cur); bs.textContent = 'Enregistré'; };
-  box.append(pv, b1, b2, lab, sw, bl, bi, bs, f); up(); show('info');
+  const tl = mk('small', '', 'Titre (affiché sous votre pseudo) :'), tw = mk('div', 'sw');
+  if (checkTitles(cur).length) putUser(ckey, cur).catch(() => {});
+  const drawT = () => {
+    tw.replaceChildren();
+    if (!cur.tu.length) { tw.append(mk('small', '', 'Vous n’avez encore aucun titre. Débloquez-en en jouant : la liste est dans Mon espace › Titres.')); return; }
+    const pickT = id => async () => { cur.ti = id; try { await putUser(ckey, cur); } catch (e) {} drawT(); };
+    const no = mk('button', 'mini' + (cur.ti ? '' : ' on'), 'Aucun'); no.onclick = pickT(''); tw.append(no);
+    TLIST.filter(t => cur.tu.includes(t.id)).forEach(t => { const b = mk('button', 'tb' + (cur.ti === t.id ? ' on' : '')); b.setAttribute('aria-label', 'Titre ' + t.name); b.appendChild(ttlEl(t.id)); b.onclick = pickT(t.id); tw.append(b); });
+  };
+  drawT();
+  const tb = mk('button', 'btn ghost', 'Voir tous les titres'); tb.onclick = () => titlesPage(profile);
+  box.append(pv, b1, b2, lab, sw, bl, bi, bs, tl, tw, tb, f); up(); show('info');
 }
 /* ---------- Profils, administration, atelier ---------- */
 let curTab = '', backFn = null;
@@ -429,7 +473,7 @@ const pch = id => PW[id].n + (plv(id) >= 3 ? 1 : 0);
 const pcost = id => Math.round((plv(id) + 1) * (160 + Object.keys(PW).indexOf(id) * 25));
 function mk(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
 function setBack(f) { backFn = f; $('btnInfoBack').textContent = f ? 'Retour' : 'Retour au menu'; }
-function nameEl(u) { const s = mk('span', 'nm', u.name); if (u.cert) s.append(' ', certEl()); return s; }
+function nameEl(u) { const s = mk('span', 'nm', u.name); if (u.cert) s.append(' ', certEl()); if (tiOf(u)) s.append(' ', ttlEl(u.ti)); return s; }
 function fillTiles(box, list) { list.forEach(([l, v]) => { const t = mk('div', 'tile'); t.append(mk('b', '', v), mk('span', '', l)); box.appendChild(t); }); }
 function tileList(u) {
   const d = u.dist || 0, sum = o => Object.values(o || {}).reduce((a, b) => a + b, 0), zk = u.zk || {};
@@ -440,18 +484,21 @@ async function profHome() {
   const box = $('infoBody'); box.className = 'prof'; box.replaceChildren(mk('small', '', 'Chargement…'));
   $('infoT').textContent = 'Mon profil'; $('infoC').textContent = ''; show('info');
   try { const f = await getUser(ckey); if (f) cur = norm(f); } catch (e) {}
+  if (checkTitles(cur).length) putUser(ckey, cur).catch(() => {});
   const u = cur, sk = SK[u.sk] || SK.surv, ph = mk('div', 'ph'), sp = mk('div', 'skp');
   sp.appendChild(skinIcon(skinOf(u), 96)); ph.append(avEl(u, 96), sp);
   const nm = mk('h2', 'pn', u.name); if (u.cert) nm.append(' ', certEl());
   const tl = mk('div', 'tiles');
-  fillTiles(tl, [['Record', u.best || 0], ['Argent', fmt(u.money) + ' $'], ['Skin équipé', sk.name], ['Certifié', u.cert ? 'Oui' : 'Non'], ['Vues du profil', u.vw.length], ['Parties jouées', u.games || 0]]);
+  fillTiles(tl, [['Record', u.best || 0], ['Argent', fmt(u.money) + ' $'], ['Skin équipé', sk.name], ['Certifié', u.cert ? 'Oui' : 'Non'], ['Vues du profil', u.vw.length], ['Parties jouées', u.games || 0], ['Titres débloqués', u.tu.length + ' / ' + TLIST.length]]);
   const b1 = mk('button', 'btn', 'Personnaliser mon profil'); b1.onclick = profile;
   const b2 = mk('button', 'btn ghost', 'Voir mon profil comme les autres'); b2.onclick = () => inspect(ckey, profHome);
+  const b4 = mk('button', 'btn ghost', 'Mes titres'); b4.onclick = () => titlesPage(profHome);
   const det = mk('div', 'tiles hide'), dt = mk('div', 'tile'), ipb = mk('b', '', '••••••••••'), rv = mk('button', 'mini', 'Afficher l’IP'); let tm = null;
   dt.append(ipb, mk('span', '', 'IP secrète : ne la partagez jamais')); det.append(dt, rv);
   rv.onclick = () => { clearTimeout(tm); if (ipb.textContent.includes('•')) { ipb.textContent = u.ip || '—'; rv.textContent = 'Masquer l’IP'; tm = setTimeout(rv.onclick, 10000); } else { ipb.textContent = '••••••••••'; rv.textContent = 'Afficher l’IP'; } };
   const b3 = mk('button', 'btn ghost', 'Détails du profil'); b3.onclick = () => det.classList.toggle('hide');
-  box.replaceChildren(ph, nm, mk('small', '', u.bio || 'Aucune présentation pour l’instant.'), tl, b1, b2, b3, det);
+  const tt = tiOf(u) ? [ttlEl(u.ti, true)] : [];
+  box.replaceChildren(ph, nm, ...tt, mk('small', '', u.bio || 'Aucune présentation pour l’instant.'), tl, b1, b2, b4, b3, det);
 }
 async function inspect(k, back) {
   curTab = 'i'; const box = $('infoBody'); box.className = 'prof'; box.replaceChildren(mk('small', '', 'Chargement…'));
@@ -464,8 +511,9 @@ async function inspect(k, back) {
   sp.appendChild(skinIcon(skinOf(u), 96)); ph.append(avEl(u, 96), sp);
   const nm = mk('h2', 'pn', u.name); if (u.cert) nm.append(' ', certEl());
   const tl = mk('div', 'tiles'), base = tileList(u);
-  fillTiles(tl, base.slice(0, 2).concat([['Skin équipé', sk.name], ['Certifié', u.cert ? 'Oui' : 'Non'], ['Vues du profil', u.vw.length]], base.slice(2)));
-  box.replaceChildren(ph, nm, mk('small', '', u.bio || 'Aucune présentation.'), tl);
+  fillTiles(tl, base.slice(0, 2).concat([['Skin équipé', sk.name], ['Certifié', u.cert ? 'Oui' : 'Non'], ['Vues du profil', u.vw.length], ['Titres débloqués', u.tu.length + ' / ' + TLIST.length]], base.slice(2)));
+  const tt = tiOf(u) ? [ttlEl(u.ti, true)] : [];
+  box.replaceChildren(ph, nm, ...tt, mk('small', '', u.bio || 'Aucune présentation.'), tl);
 }
 async function userList() {
   curTab = 'v';
@@ -535,6 +583,78 @@ function cielPage() {
     row('4+', 'Tous les autres : ' + CIEL_OTHER, '#2a3d5e', '#fff'));
   const lb = mk('div', 'lb'), net = mk('small', 'net'), ol = mk('ol'); lb.append(net, ol);
   box.append(mk('h2', '', 'Classement des meilleurs joueurs'), lb); show('info'); renderLB(ol, true);
+}
+/* ---------- Titres ---------- */
+const sm = o => Object.values(o || {}).reduce((a, b) => a + b, 0);
+const TS = {
+  games: u => u.games || 0, kills: u => u.kills || 0, wk: u => sm(u.wk), pk: u => sm(u.pk), dist: u => u.dist || 0, tp: u => (u.tp || 0) / 60,
+  bw: u => u.bw || 0, best: u => u.best || 0, shots: u => u.shots || 0, earned: u => u.earned || 0, bc: u => u.bc || 0,
+  boss: u => ((u.zk || {}).boss || 0) + ((u.zk || {}).titan || 0), titan: u => (u.zk || {}).titan || 0,
+  dz: u => (u.dz || []).length, dw: u => (u.dw || []).length, dp: u => (u.dp || []).length, os: u => (u.os || []).length,
+  up: u => sm(u.wl) + sm(u.pl), vw: u => (u.vw || []).length, cert: u => u.cert ? 1 : 0
+};
+const ALL = { dz: () => Object.keys(TYPES).length, dw: () => Object.keys(WP).length, dp: () => Object.keys(PW).length, os: () => Object.keys(SK).length };
+const pls = (n, a, b) => fmt(n) + ' ' + (n > 1 ? b : a);
+const TD = {
+  games: n => 'Terminer ' + pls(n, 'partie', 'parties'), kills: n => 'Tuer ' + pls(n, 'zombie', 'zombies'), wk: n => 'Ramasser ' + pls(n, 'arme', 'armes'),
+  pk: n => 'Utiliser ' + pls(n, 'pouvoir', 'pouvoirs'), dist: n => 'Parcourir ' + (n >= 1000 ? fmt(n / 1000) + ' km' : n + ' m'), tp: n => 'Jouer ' + fmt(n) + ' minutes au total',
+  bw: n => 'Atteindre la vague ' + n, best: n => 'Marquer ' + fmt(n) + ' points en une seule partie', shots: n => 'Tirer ' + fmt(n) + ' fois', earned: n => 'Gagner ' + fmt(n) + ' $ au total',
+  boss: n => 'Abattre ' + pls(n, 'colosse ou titan', 'colosses ou titans'), titan: n => 'Abattre ' + pls(n, 'titan', 'titans'), bc: n => 'Atteindre un combo de ×' + n,
+  dz: n => 'Découvrir ' + n + ' zombies', dw: n => 'Découvrir ' + n + ' armes', dp: n => 'Découvrir ' + n + ' pouvoirs', os: n => 'Posséder ' + n + ' skins',
+  up: n => 'Cumuler ' + n + ' niveaux d’amélioration (armes et pouvoirs)', vw: n => 'Faire visiter votre profil par ' + pls(n, 'joueur', 'joueurs'), cert: () => 'Obtenir un compte certifié'
+};
+const TU = { dist: ' m', tp: ' min', earned: ' $' };
+/* [id, nom, style, statistique, objectif, description (facultatif)] : du plus facile au plus difficile dans chaque série */
+const TLIST = [
+  ['recrue', 'Recrue', 'bronze', 'games', 1], ['premier', 'Premier sang', 'bronze', 'kills', 10], ['debrouille', 'Débrouillard', 'bronze', 'wk', 10],
+  ['surv5', 'Rescapé', 'bronze', 'bw', 5], ['marcheur', 'Marcheur', 'bronze', 'dist', 1000], ['e1000', 'Économe', 'bronze', 'earned', 1000],
+  ['chasseur', 'Chasseur', 'green', 'kills', 100], ['pilleur', 'Pilleur d’armes', 'green', 'wk', 100], ['surv10', 'Survivant', 'green', 'bw', 10],
+  ['c10', 'En série', 'green', 'bc', 10], ['pop', 'Populaire', 'green', 'vw', 10], ['g1000', 'Gâchette facile', 'silver', 'shots', 1000],
+  ['s1000', 'Bon début', 'silver', 'best', 1000], ['veteran', 'Vétéran', 'silver', 'games', 25], ['dandy', 'Dandy', 'silver', 'os', 5],
+  ['exter', 'Exterminateur', 'blue', 'kills', 500], ['marathon', 'Marathonien', 'blue', 'dist', 10000], ['p10', 'Apprenti pouvoir', 'blue', 'pk', 10],
+  ['s5000', 'Grand tueur', 'blue', 'best', 5000], ['forge', 'Forgeron', 'blue', 'up', 10], ['colosse', 'Briseur de colosses', 'red', 'boss', 1],
+  ['g10000', 'Pluie de plomb', 'red', 'shots', 10000], ['arsenal', 'Arsenal complet', 'red', 'dw', 'all', 'Découvrir toutes les armes'],
+  ['fleau', 'Fléau des morts', 'purple', 'kills', 2000], ['nomade', 'Nomade éternel', 'purple', 'dist', 50000], ['c30', 'Machine à tuer', 'purple', 'bc', 30],
+  ['veilleur', 'Veilleur', 'shadow', 'tp', 60], ['insomnie', 'Insomniaque', 'shadow', 'tp', 600], ['titan', 'Tueur de titans', 'blood', 'titan', 1],
+  ['p100', 'Maître des éléments', 'ice', 'pk', 100], ['pouvoirs', 'Tous les pouvoirs', 'ice', 'dp', 'all', 'Découvrir tous les pouvoirs'],
+  ['bestiaire', 'Bestiaire complet', 'toxic', 'dz', 'all', 'Découvrir tous les zombies'], ['armurier', 'Maître armurier', 'gold', 'wk', 500],
+  ['increvable', 'Increvable', 'gold', 'games', 100], ['e10000', 'Magnat', 'gold', 'earned', 10000], ['parfait', 'Arsenal parfait', 'gold', 'up', 60],
+  ['surv20', 'Légende de la nuit', 'fire', 'bw', 20], ['geants', 'Fléau des géants', 'fire', 'boss', 25], ['c60', 'Inarrêtable', 'fire', 'bc', 60],
+  ['s15000', 'Maître du carnage', 'royal', 'best', 15000], ['e50000', 'Roi de l’or', 'royal', 'earned', 50000], ['surv30', 'Immortel', 'royal', 'bw', 30],
+  ['apoc', 'Apocalypse', 'rainbow', 'kills', 10000], ['garde', 'Garde-robe complète', 'rainbow', 'os', 'all', 'Posséder tous les skins'],
+  ['cert', 'Compte certifié', 'cert', 'cert', 1]
+].map(([id, name, k, st, n, d]) => ({ id, name, k, st, n, d }));
+const TT = Object.fromEntries(TLIST.map(t => [t.id, t]));
+const tn = t => t.n === 'all' ? ALL[t.st]() : t.n;
+const tdesc = t => t.d || TD[t.st](tn(t));
+const tiOf = u => (u && u.ti && (u.tu || []).includes(u.ti) && TT[u.ti]) ? u.ti : '';
+function ttlEl(id, big) { const t = TT[id]; return t ? mk('span', 'ttl ' + t.k + (big ? ' lg' : ''), t.name) : null; }
+function checkTitles(u) {
+  u.tu = u.tu || []; const got = [];
+  TLIST.forEach(t => { if (!u.tu.includes(t.id) && TS[t.st](u) >= tn(t)) { u.tu.push(t.id); got.push(t.id); } });
+  return got;
+}
+function titlesPage(back) {
+  const bk = back || null; curTab = 't'; setBack(bk);
+  if (checkTitles(cur).length) putUser(ckey, cur).catch(() => {});
+  const box = $('infoBody'), st = box.scrollTop; box.className = 'ul'; box.replaceChildren();
+  $('infoT').textContent = 'Titres'; $('infoC').textContent = cur.tu.length + ' / ' + TLIST.length + ' débloqués · ' + (tiOf(cur) ? 'Équipé : ' + TT[cur.ti].name : 'Aucun titre équipé');
+  box.append(mk('p', 'note', 'Au départ, vous n’avez aucun titre. Remplissez les objectifs pour les débloquer, puis équipez-en un : il s’affiche sous votre pseudo, dans votre profil et dans le classement.'));
+  TLIST.forEach(t => {
+    const own = cur.tu.includes(t.id), v = Math.floor(TS[t.st](cur)), n = tn(t), on = own && cur.ti === t.id;
+    const r = mk('div', 'trow' + (own ? '' : ' lock') + (on ? ' on' : '')), x = mk('div', 'tx');
+    x.append(mk('small', '', tdesc(t)));
+    if (own) x.append(mk('small', 'okt', 'Débloqué'));
+    else { const pb = mk('div', 'pbar'), bi = mk('i'); bi.style.width = Math.min(100, v / n * 100) + '%'; pb.appendChild(bi); x.append(pb, mk('small', '', 'Progression : ' + fmt(v) + ' / ' + fmt(n) + (TU[t.st] || ''))); }
+    r.append(ttlEl(t.id, true), x);
+    if (own) {
+      const b = mk('button', 'mini', on ? 'Retirer' : 'Équiper');
+      b.onclick = async () => { cur.ti = on ? '' : t.id; try { await putUser(ckey, cur); } catch (e) {} titlesPage(bk); };
+      r.appendChild(b);
+    }
+    box.appendChild(r);
+  });
+  show('info'); box.scrollTop = st;
 }
 /* ---------- Skins et boutique ---------- */
 function skinIcon(sk, size) {
@@ -682,7 +802,7 @@ const FREE = ['surv', 'medic', 'ranger'];
 function norm(u) {
   u.dw = u.dw || ['pistol']; if (!u.dw.includes('knife')) u.dw.push('knife'); u.dz = u.dz || []; u.dp = u.dp || [];
   u.os = [...new Set([...(u.os || []), ...FREE])]; u.sc = u.sc || {}; if (!SK[u.sk] || !u.os.includes(u.sk)) u.sk = 'surv';
-  u.money = u.money || 0; u.pk = u.pk || {}; u.wl = u.wl || {}; u.vw = u.vw || []; u.pl = u.pl || {}; return u;
+  u.money = u.money || 0; u.pk = u.pk || {}; u.wl = u.wl || {}; u.vw = u.vw || []; u.pl = u.pl || {}; u.tu = u.tu || []; if (!u.tu.includes(u.ti)) u.ti = ''; return u;
 }
 function skinOf(u, id, ov) {
   const b = SK[id || (u && u.sk) || 'surv'] || SK.surv, o = ov || (u && u.sc) || {};
@@ -958,6 +1078,7 @@ const K = {}, joy = { on: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
 const MAP = { ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r', ArrowUp: 'u', KeyW: 'u', ArrowDown: 'd', KeyS: 'd', ShiftLeft: 's', ShiftRight: 's', Space: 's' };
 addEventListener('keydown', e => {
   if (e.code === 'KeyM' && G.playing) { toggleSnd(); return; }
+  if (e.code === 'KeyQ' && G.playing && !G.paused) { cycleWp(1); return; }
   if (e.code === 'KeyE' && G.playing && !G.paused) { usePower(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') { if (G.playing && !G.perk) setPause(!G.paused); return; }
   if (MAP[e.code] && G.playing) { K[MAP[e.code]] = 1; e.preventDefault(); }
@@ -969,6 +1090,8 @@ cv.addEventListener('mousedown', e => { if (!G.playing || G.paused) return; if (
 addEventListener('mouseup', () => { down = false; });
 addEventListener('contextmenu', e => { if (G.playing) e.preventDefault(); });
 $('pw').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); usePower(); });
+$('wpn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); cycleWp(1); });
+cv.addEventListener('wheel', e => { if (G.playing && !G.paused) { cycleWp(e.deltaY > 0 ? 1 : -1); e.preventDefault(); } }, { passive: false });
 cv.addEventListener('touchstart', e => {
   const t = e.changedTouches[0]; if (joy.on || !G.playing) return;
   touch = true; joy.on = true; joy.id = t.identifier; joy.ox = joy.x = t.clientX; joy.oy = joy.y = t.clientY; e.preventDefault();
@@ -986,7 +1109,7 @@ function start() {
   if (!cur) return showMenu();
   G = {
     playing: true, paused: false, t: 0, wave: 0, score: 0, kills: 0, brk: 0, dc: 0, combo: 0, ct: 0, dist: 0, shots: 0, zk: {}, wk: {}, lx: WORLD / 2, ly: WORLD / 2, flash: 0, spawnLeft: 0, spawnT: 1,
-    wp: 'pistol', ammo: WP.pistol.ammo, tmr: {}, cz: 0, cc: 0, sp: [], fx: [], st: [], ph: null, pa: null, pu: {}, sk: skinOf(cur), eb: [], z: [], b: [], pt: [], ft: [], dr: [],
+    wp: 'pistol', ammo: WP.pistol.ammo, am: {}, bc: 0, tmr: {}, cz: 0, cc: 0, sp: [], fx: [], st: [], ph: null, pa: null, pu: {}, sk: skinOf(cur), eb: [], z: [], b: [], pt: [], ft: [], dr: [],
     df: DF, pk: { dm: 0, rt: 0, sp: 0, hp: 0, rg: 0, am: 0, dh: 0, lt: 0, pl: 0 }, pc: 0, perk: false,
     p: { x: WORLD / 2, y: WORLD / 2, hp: 100, mhp: 100, r: 15, cd: 0, hit: 0, ang: 0, dt: 0 }
   };
@@ -1029,7 +1152,7 @@ function pushOut(o, r) {
   }
 }
 const pick = a => a[Math.floor(Math.random() * a.length)];
-const BP = ['freeze', 'rage', 'ammo', 'ammo', 'ammo', 'heal', 'heal', 'heal', 'shield', 'shield', 'speed', 'speed', 'x2', 'x2', 'nuke', 'magnet', 'magnet'];
+const BP = ['freeze', 'rage', 'ammo', 'ammo', 'ammo', 'ammo', 'ammo', 'ammo', 'heal', 'heal', 'heal', 'shield', 'shield', 'speed', 'speed', 'x2', 'x2', 'nuke', 'magnet', 'magnet'];
 const pickWeapon = rare => { const l = Object.keys(WP).filter(k => WP[k].tier && WP[k].tier <= G.wave).sort((a, b) => WP[a].tier - WP[b].tier); return rare ? pick(l.slice(-3)) : pick(l.slice(0, Math.max(2, Math.ceil(l.length * .7)))); };
 const _old = rare => pick(rare ? ['rifle', 'sniper', 'sniper', 'mini', 'mini', 'shotgun'] : ['smg', 'smg', 'smg', 'shotgun', 'shotgun', 'rifle', 'rifle', 'sniper', 'mini']);
 function hurt(d) { const p = G.p; if (G.tmr.shield > 0) return; p.hp -= d * G.df.dm; p.hit = .25; shake = Math.max(shake, 7); sfx('hurt'); }
@@ -1038,10 +1161,34 @@ function boom(z) {
   if (Math.hypot(p.x - z.x, p.y - z.y) < 95) hurt(30);
   G.z.forEach(o => { if (o !== z && Math.hypot(o.x - z.x, o.y - z.y) < 95) o.hp -= 8; });
 }
+/* ---------- Munitions cumulées par arme ---------- */
+function lowAmmo() { const g = G; if (g.wp === 'knife') return true; const m = maxAm(g.wp); return m > 0 && g.ammo < m * .3; }
+function bestStock() { const g = G; return Object.keys(g.am).filter(k => g.am[k] > 0 && k !== g.wp).sort((a, b) => (WP[b].tier || 0) - (WP[a].tier || 0))[0] || null; }
+function setWp(id) {
+  const g = G; if (id === g.wp) return;
+  if (g.wp !== 'knife' && g.ammo > 0) g.am[g.wp] = g.ammo;
+  g.wp = id; g.ammo = id === 'knife' ? 0 : (g.am[id] || 0); delete g.am[id];
+}
+function ownedList() {
+  const g = G, ids = Object.keys(g.am).filter(k => g.am[k] > 0 && k !== g.wp); if (g.wp !== 'knife') ids.push(g.wp);
+  ids.sort((a, b) => (WP[a].tier || 0) - (WP[b].tier || 0)); ids.push('knife'); return ids;
+}
+function cycleWp(dir) {
+  const g = G; if (!g.playing || g.paused) return;
+  const l = ownedList(); if (l.length < 2) return;
+  setWp(l[(l.indexOf(g.wp) + dir + l.length) % l.length]); g.p.cd = Math.max(g.p.cd, .15); sfx('pick');
+  g.ft.push({ x: g.p.x, y: g.p.y - 30, t: 1, s: WP[g.wp].name, c: WP[g.wp].col });
+}
+function outOfAmmo() {
+  const g = G; g.ammo = 0; delete g.am[g.wp]; const nx = bestStock();
+  if (nx) { g.wp = nx; g.ammo = g.am[nx]; delete g.am[nx]; } else g.wp = 'knife';
+  g.p.cd = Math.max(g.p.cd, .2);
+  g.ft.push({ x: g.p.x, y: g.p.y - 30, t: 1.4, s: 'Plus de munitions : ' + WP[g.wp].name, c: '#ff4d5e' });
+}
 function dropFrom(z) {
-  const rw = z.t === 'boss' || z.t === 'titan' ? 1 : z.t === 'brute' ? .5 : z.t === 'tank' ? .3 : .04;
+  const low = lowAmmo(), rw = (z.t === 'boss' || z.t === 'titan' ? 1 : z.t === 'brute' ? .75 : z.t === 'tank' ? .55 : .1) + (low ? .06 : 0);
   if (Math.random() < rw) G.dr.push({ x: z.x + rnd(-10, 10), y: z.y, k: 'w', id: pickWeapon(z.t === 'boss' || z.t === 'titan' || z.t === 'brute'), l: 20 });
-  else if (Math.random() < .15 * (1 + .3 * G.pk.lt)) G.dr.push({ x: z.x, y: z.y, k: 'b', id: pick(BP), l: 15 });
+  else if (Math.random() < .3 * (1 + .3 * G.pk.lt)) G.dr.push({ x: z.x, y: z.y, k: 'b', id: low && Math.random() < .5 ? 'ammo' : pick(BP), l: 18 });
   if (z.t === 'boss' || z.t === 'titan') G.dr.push({ x: z.x + 34, y: z.y, k: 'b', id: 'heal', l: 20 });
   const pr = z.t === 'boss' || z.t === 'titan' ? 1 : z.t === 'brute' ? .16 : z.t === 'tank' ? .07 : .012;
   if (Math.random() < pr) G.dr.push({ x: z.x + rnd(-24, 24), y: z.y + rnd(12, 28), k: 'p', id: pick(Object.keys(PW)), l: 25 });
@@ -1054,12 +1201,12 @@ function take(d) {
     g.ft.push({ x: p.x, y: p.y - 22, t: 1.4, s: pw.name + ' ×' + g.pc + ' : clic droit', c: pw.col }); return;
   }
   if (d.k === 'w') {
-    const w = WP[d.id]; g.wp = d.id; g.ammo = maxAm(d.id); g.wk[d.id] = (g.wk[d.id] || 0) + 1; sfx('pick');
+    const w = WP[d.id], had = g.wp === d.id ? g.ammo : (g.am[d.id] || 0); setWp(d.id); g.ammo = Math.min(maxAm(d.id) * 2, had + maxAm(d.id)); g.wk[d.id] = (g.wk[d.id] || 0) + 1; sfx('pick');
     if (!cur.dw.includes(d.id)) { cur.dw.push(d.id); g.ft.push({ x: p.x, y: p.y - 44, t: 1.6, s: 'Arme découverte !', c: '#7fb8ff' }); }
-    g.ft.push({ x: p.x, y: p.y - 22, t: 1.2, s: w.name, c: w.col });
+    g.ft.push({ x: p.x, y: p.y - 22, t: 1.2, s: w.name + ' +' + (g.ammo - had), c: w.col });
   } else {
     const b = BONUS[d.id]; sfx('bonus');
-    if (d.id === 'ammo') { if (g.wp === 'knife') { g.wp = 'pistol'; g.ammo = 30; } else g.ammo = Math.min(maxAm(g.wp), g.ammo + Math.ceil(maxAm(g.wp) * .5)); }
+    if (d.id === 'ammo') { if (g.wp === 'knife') setWp(bestStock() || 'pistol'); g.ammo = Math.min(maxAm(g.wp) * 2, g.ammo + Math.ceil(maxAm(g.wp) * .5)); }
     else if (d.id === 'heal') p.hp = Math.min(p.mhp, p.hp + 30);
     else if (d.id === 'nuke') { g.z.forEach(z => { if (z.t === 'boss') z.hp -= 40; else z.hp = 0; }); shake = 20; sfx('boom'); }
     else g.tmr[d.id] = { shield: 6, speed: 8, x2: 12, freeze: 6, rage: 8, magnet: 12 }[d.id];
@@ -1069,20 +1216,23 @@ function take(d) {
 async function end() {
   if (G.over) return; G.over = true; sfx('over');
   G.playing = false; hud(false); show('over');
-  $('fs').textContent = G.score; $('fd').textContent = 'Enregistrement du score…'; $('fc').textContent = '';
+  $('fs').textContent = G.score; $('fd').textContent = 'Enregistrement du score…'; $('fc').textContent = ''; $('ft').replaceChildren();
   let u, rec = false; try { u = (await getUser(ckey)) || cur; } catch (e) { $('fd').textContent = 'Hors ligne : score non enregistré. Vérifiez votre connexion.'; return; } if ((u.rv || 0) !== (cur.rv || 0)) cur = u;
   u.games = (u.games || 0) + 1; u.kills = (u.kills || 0) + G.kills;
   u.total = (u.total || 0) + G.score; u.dist = (u.dist || 0) + G.dist; u.tp = (u.tp || 0) + G.t; u.shots = (u.shots || 0) + G.shots; u.bw = Math.max(u.bw || 0, G.wave);
   ['zk', 'wk'].forEach(f => { u[f] = u[f] || {}; for (const k in G[f]) u[f][k] = (u[f][k] || 0) + G[f][k]; });
   u.av = u.av || cur.av; u.col = u.col || cur.col;
+  u.ti = cur.ti || ''; u.tu = [...new Set([...(u.tu || []), ...(cur.tu || [])])]; u.bc = Math.max(u.bc || 0, G.bc || 0);
   u.sk = cur.sk; u.sc = cur.sc; u.os = [...new Set([...(u.os || []), ...(cur.os || [])])]; u.dp = [...new Set([...(u.dp || []), ...(cur.dp || [])])];
   const gn = cashParts(); u.money = (u.money || 0) + gn.total; u.earned = (u.earned || 0) + gn.total; u.pk = u.pk || {}; for (const k in G.pu) u.pk[k] = (u.pk[k] || 0) + G.pu[k]; norm(u);
   u.dw = [...new Set([...(u.dw || []), ...cur.dw])]; u.dz = [...new Set([...(u.dz || []), ...cur.dz])];
   if (G.score > (u.best || 0)) { u.best = G.score; rec = true; }
+  const nt = checkTitles(u);
   try { await putUser(ckey, u); } catch (e) { $('fd').textContent = 'Hors ligne : score non enregistré.'; return; }
   cur = u;
   $('fd').textContent = 'Vague ' + G.wave + ', ' + G.kills + ' zombies abattus. ' + (rec ? 'Nouveau record personnel !' : 'Record : ' + u.best);
   $('fc').textContent = '+' + gn.total + ' $ gagnés (zombies ' + gn.k + ', combos ' + gn.c + ', distance ' + gn.d + ', vagues ' + gn.w + ') · Solde : ' + u.money + ' $';
+  const ftb = $('ft'); ftb.replaceChildren(); if (nt.length) { ftb.append(nt.length > 1 ? 'Titres débloqués : ' : 'Titre débloqué : '); nt.forEach(id => ftb.append(ttlEl(id, true), ' ')); ftb.append(mk('br'), 'À équiper dans Mon espace › Titres.'); }
   renderLB($('lb2'));
 }
 
@@ -1116,7 +1266,7 @@ function update(dt) {
     }
     if (g.wp !== 'knife') blood(p.x + Math.cos(p.ang) * 28, p.y + Math.sin(p.ang) * 28, '#ffd27a', 3, 120);
     if (w.n > 3 || w.dmg > 5) shake = Math.max(shake, 4);
-    if (g.wp !== 'knife' && --g.ammo <= 0) { g.wp = 'knife'; g.ft.push({ x: p.x, y: p.y - 30, t: 1.4, s: 'Plus de munitions : couteau', c: '#ff4d5e' }); }
+    if (g.wp !== 'knife' && --g.ammo <= 0) outOfAmmo();
   }
   for (let i = g.b.length - 1; i >= 0; i--) {
     const b = g.b[i]; b.x += b.vx * dt; b.y += b.vy * dt; b.l -= dt; let dead = b.l <= 0;
@@ -1140,7 +1290,7 @@ function update(dt) {
   for (let i = g.z.length - 1; i >= 0; i--) {
     const z = g.z[i];
     if (z.hp <= 0) {
-      g.combo++; g.ct = 2.5; g.zk[z.t] = (g.zk[z.t] || 0) + 1; sfx('kill');
+      g.combo++; if (g.combo > g.bc) g.bc = g.combo; g.ct = 2.5; g.zk[z.t] = (g.zk[z.t] || 0) + 1; sfx('kill');
       const pts = Math.max(1, Math.round((z.pts + Math.floor(g.combo / 5)) * (g.tmr.x2 > 0 ? 2 : 1) * g.df.sc));
       g.score += pts; g.kills++; g.cz += z.pts; if (g.combo >= 5) g.cc += Math.floor(g.combo / 5); blood(z.x, z.y, z.c, z.t === 'boss' ? 50 : 16, 220); gore(z.x, z.y, Math.atan2(z.ky || 0, z.kx || 1), z.t === 'boss' ? 46 : 18, 360); splat(z.x, z.y, z.r); splat(z.x, z.y, z.r);
       g.ft.push({ x: z.x, y: z.y - z.r, t: 1, s: '+' + pts, c: z.t === 'boss' ? '#ff5a5a' : '#ffb347' });
@@ -1200,7 +1350,8 @@ function update(dt) {
   if (g.brk > 0) { g.brk -= dt; if (g.brk <= 0) nextWave(); }
   $('sc').textContent = g.score; $('kl').textContent = g.kills; $('rem').textContent = g.spawnLeft + g.z.length;
   $('wv').textContent = 'Vague ' + g.wave; $('hp').style.width = Math.max(0, p.hp / p.mhp * 100) + '%'; $('hpn').textContent = Math.max(0, Math.ceil(p.hp)) + ' / ' + p.mhp;
-  $('wpn').textContent = w.name + (wlv(g.wp) ? ' Niv.' + wlv(g.wp) : '') + ' · ' + (g.wp === 'knife' ? '∞' : g.ammo); $('cash').textContent = cashParts().total; pwUI();
+  const oth = Object.keys(g.am).filter(k => g.am[k] > 0).sort((a, b) => (WP[a].tier || 0) - (WP[b].tier || 0)).map(k => WP[k].ab + ' ' + g.am[k]).join(' · ');
+  $('wpn').textContent = w.name + (wlv(g.wp) ? ' Niv.' + wlv(g.wp) : '') + ' · ' + (g.wp === 'knife' ? '∞' : g.ammo) + (oth ? '   [' + oth + ']' : ''); $('cash').textContent = cashParts().total; pwUI();
   const bt = []; for (const k of ['shield', 'speed', 'x2', 'freeze', 'rage', 'magnet']) if (g.tmr[k] > 0) bt.push(BONUS[k].n + ' ' + Math.ceil(g.tmr[k]) + ' s');
   if (g.combo >= 3) bt.push('Combo ×' + g.combo); bt.push(g.dc > 0 ? 'Esquive ' + g.dc.toFixed(1) + ' s' : 'Esquive prête');
   if (p.hp < 30 && g.t - (g.hb || 0) > .9) { g.hb = g.t; tone(60, .14, 'sine', .3, .5); tone(55, .14, 'sine', .25, .5, .18); }
