@@ -16,8 +16,8 @@ h1{font-size:64px;line-height:.92;color:var(--acc);text-transform:uppercase;text
 h2{font-size:28px;margin-bottom:14px;color:var(--acc2)}
 .sub{color:var(--mute);line-height:1.45;margin-bottom:18px}
 label{display:block;font-size:14px;color:var(--mute);margin-bottom:12px}
-input{display:block;width:100%;margin-top:5px;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:#0e1a2e;color:var(--txt);font-size:17px;outline:none;-webkit-user-select:text;user-select:text}
-input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(255,122,47,.25)}
+input,textarea{display:block;width:100%;margin-top:5px;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:#0e1a2e;color:var(--txt);font-size:17px;outline:none;-webkit-user-select:text;user-select:text}
+input:focus,textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(255,122,47,.25)}
 .btn{display:block;width:100%;margin-top:10px;padding:14px;border:0;border-radius:12px;background:var(--acc);color:#1a0d02;font-size:22px;cursor:pointer;box-shadow:0 6px 0 #b4501a;transition:transform .08s,box-shadow .08s}
 .btn:hover{background:var(--acc2)}
 .btn:active{transform:translateY(5px);box-shadow:0 1px 0 #b4501a}
@@ -195,6 +195,23 @@ label.chk{display:flex;align-items:center;gap:8px;margin-top:-4px}label.chk inpu
 .pbar{height:6px;border-radius:4px;background:#1c2a44;margin-top:6px;overflow:hidden}.pbar i{display:block;height:100%;background:var(--acc);border-radius:4px}
 .sw button.tb{width:auto;height:auto;border-radius:10px;border:1px solid var(--line);background:#0e1a2e;padding:5px 6px}
 .sw button.tb.on{border-color:var(--acc);box-shadow:0 0 0 2px rgba(255,122,47,.4)}
+
+/* v9 : contacter le staff */
+textarea{font-family:inherit;resize:vertical;min-height:90px;-webkit-user-select:text;user-select:text}
+.staff{display:flex;flex-direction:column;gap:10px;text-align:left}
+.staff h2{margin:10px 0 0;font-size:22px}
+.staff .perk{margin:0}
+.cmp{display:flex;flex-direction:column;gap:6px}.cmp .btn{margin-top:2px}
+.ferr{color:var(--bad);font-size:13px;min-height:16px}
+.fp{border:1px solid var(--line);border-radius:14px;background:#0e1a2e;padding:12px;display:flex;flex-direction:column;gap:8px}
+.fph{display:flex;align-items:center;gap:10px}.fpn{flex:1;min-width:0}.fpn small{display:block;color:var(--mute);font-size:12px}
+.fpt{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.45;color:var(--txt)}
+.fpa{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.fpa .mini{margin-top:0}.mini.on{background:var(--acc);color:#1a0d02;border-color:var(--acc)}
+.reps{display:flex;flex-direction:column;gap:8px;margin-left:14px;padding-left:12px;border-left:2px solid var(--line)}.reps:empty{display:none}
+.rep{display:flex;flex-direction:column;gap:6px}.rep .fph{gap:8px}.rep .mini{align-self:flex-start;margin-top:0}
+.fp>.rep{margin-left:14px;padding-left:12px;border-left:2px solid #2f8cff}
+.stf{display:inline-flex;align-items:center;padding:1px 8px;border-radius:999px;background:linear-gradient(90deg,#1f5fd0,#2f8cff);color:#fff;font:400 10px Impact,sans-serif;letter-spacing:.05em;box-shadow:0 0 8px rgba(47,140,255,.5)}
+.stt{padding:2px 10px;border-radius:999px;border:1px solid var(--ok);color:var(--ok);font:400 11px Impact,sans-serif}
 </style></head><body>
 <canvas id="c"></canvas><div id="vig"></div>
 <div id="hud" class="hide">
@@ -223,7 +240,7 @@ label.chk{display:flex;align-items:center;gap:8px;margin-top:-4px}label.chk inpu
     <div class="card wallet"><small>Mon argent</small><div class="amt"><b id="mon">0</b> <span>$</span></div><small>Gagné en tuant des zombies, en enchaînant les combos et en allant loin.</small><button class="btn ghost" data-i="b">Boutique</button><button class="btn ghost" data-i="a">Menu d’amélioration</button></div>
     <div class="card"><h2>Mon espace</h2><button class="btn ghost" data-i="p">Mon profil</button><button class="btn ghost" data-i="k">Skins</button><button class="btn ghost" data-i="t">Titres</button><button class="btn ghost" data-i="s">Statistiques</button></div>
     <div class="card"><h2>Découvertes</h2><button class="btn ghost" data-i="w">Armes découvertes</button><button class="btn ghost" data-i="z">Zombies découverts</button><button class="btn ghost" data-i="q">Pouvoirs découverts</button></div>
-    <div class="card"><h2>Communauté</h2><button class="btn ghost" data-i="v">Regarder les profils</button></div>
+    <div class="card"><h2>Communauté</h2><button class="btn ghost" data-i="v">Regarder les profils</button><button class="btn ghost" data-i="h">Contacter le staff</button></div>
     
   </div>
   <div class="card main">
@@ -298,6 +315,27 @@ async function allUsers(withDel) {
   else if (MODE === 'claude') { const s = await DB.collection('players').limit(500).get(); a = s.docs.map(d => d.data()); }
   else a = Object.values(lload());
   return a.filter(u => u && typeof u === 'object' && u.name && !u.purged && (withDel || !u.del));
+}
+/* ---------- Données communes : messages au staff, bugs, idées ----------
+   Firebase : staffmsg/{clé joueur}/{id}   posts/bug/{id}   posts/idea/{id}   (voir le détail dans le message)
+   Hors Firebase : copie locale (localStorage), pour tester. */
+const LF = 'dn_feed_v1';
+const fload = () => { try { return JSON.parse(localStorage.getItem(LF)) || {}; } catch (e) { return {}; } };
+const fsave = d => { try { localStorage.setItem(LF, JSON.stringify(d)); } catch (e) {} };
+const segs = p => p.split('/').filter(Boolean);
+async function dget(p) {
+  if (MODE === 'firebase') return await fb('GET', p);
+  let n = fload(); for (const k of segs(p)) { if (n == null || typeof n !== 'object') return null; n = n[k]; } return n === undefined ? null : n;
+}
+async function dput(p, v) {
+  if (MODE === 'firebase') { await fb('PUT', p, v); return; }
+  const d = fload(), a = segs(p), last = a.pop(); let n = d;
+  for (const k of a) { if (!n[k] || typeof n[k] !== 'object') n[k] = {}; n = n[k]; } n[last] = v; fsave(d);
+}
+async function ddel(p) {
+  if (MODE === 'firebase') { await fb('DELETE', p); return; }
+  const d = fload(), a = segs(p), last = a.pop(); let n = d;
+  for (const k of a) { if (!n || typeof n[k] !== 'object') return; n = n[k]; } if (n) delete n[last]; fsave(d);
 }
 async function topList(n = 10) {
   return (await allUsers(false)).sort((a, b) => (b.best || 0) - (a.best || 0) || a.name.localeCompare(b.name)).slice(0, n);
@@ -377,7 +415,7 @@ async function login() {
   } catch (e) { setErr('Erreur de connexion. Réessayez.'); }
   finally { $('btnLogin').disabled = false; }
 }
-const HOW = `<ul class="how"><li><b>Se déplacer</b> : flèches ou ZQSD / WASD.</li><li><b>Viser</b> : le canon suit votre curseur.</li><li><b>Tirer</b> : maintenez le clic gauche.</li><li><b>Esquive</b> : Maj ou Espace (recharge 1,6 s).</li><li><b>Pouvoir</b> : rare, lâché par certains zombies. Il apparaît dans la case à côté de votre barre de vie et s’utilise plusieurs fois. <b>Clic droit</b> (ou touche E) pour l’activer.</li></ul><div id="howExtra" class="hide"><ul class="how"><li><b>Tir</b> : le pistolet tire un coup par clic ; les armes automatiques tirent tant que vous maintenez.</li><li><b>Armes</b> : certains zombies lâchent une arme (les meilleures n’arrivent que dans les vagues avancées). Les munitions s’accumulent : ramasser une arme que vous avez déjà ajoute ses munitions, et en prendre une autre ne fait pas perdre celles de l’ancienne (affichées entre crochets). <b>Changer d’arme</b> : Q, molette de la souris ou toucher le nom de l’arme. Sans munitions, vous passez à une autre arme chargée, puis au couteau : ramassez une arme ou une caisse MU.</li><li><b>Bonus</b> : croix soin, bouclier, flèches vitesse, ×2 points, bombe, flocon gel (zombies ralentis), ! furie (tir ×2), caisse MU munitions, U aimant (attire les bonus).</li><li><b>Zombies</b> : chaque type rapporte des points différents. Méfiez-vous des cracheurs et des kamikazes.</li><li><b>Combo</b> : enchaînez les kills pour des points et de l’argent en plus.</li><li><b>Argent</b> : vous en gagnez à chaque partie, selon les zombies abattus, les combos, la distance parcourue et les vagues atteintes. Il est ajouté à la fin de la partie.</li><li><b>Pouvoirs (12)</b> : Lasers, Onde de choc, Lames tournantes, Frappe aérienne, Tempête de balles, Soin de zone, Chrono, Barrière (invulnérable), Furie (tir ×2 et vitesse), Anneau de feu, Foudre (frappe les 8 zombies les plus proches) et Siphon (aspire la vie des zombies et vous soigne).</li><li><b>Boutique</b> (carte Argent) : achetez des skins.</li><li><b>Menu d’amélioration</b> (carte Argent) : toutes les armes et tous les pouvoirs sont là, jusqu’au niveau 5. Armes : +15 % de dégâts, tir plus rapide, +12 % de munitions, balles perforantes au niveau 3. Pouvoirs : +15 % de puissance, +10 % de durée, +1 charge au niveau 3.</li><li><b>Améliorations de partie</b> : aux vagues 2, 4, 7, 10… choisissez 1 amélioration parmi 3 pour la partie en cours.</li><li><b>Profils</b> : consultez les comptes des autres joueurs. Le badge OK bleu marque les comptes certifiés.</li><li><b>Skins</b> (Mon espace) : 3 skins sont débloqués au départ, les autres s’achètent. Changez aussi la couleur du maillot, des cheveux et du teint, et la coiffure.</li><li><b>Titres</b> (Mon espace) : tuez des zombies, ramassez des armes, allez loin… pour débloquer des titres aux styles différents (faciles ou très durs). Au départ vous n’en avez aucun. Équipez-en un dans « Personnaliser mon profil » ou dans la case Titres, qui montre aussi comment débloquer chacun.</li><li><b>Découvertes</b> : Mon espace garde la liste des armes, zombies et pouvoirs déjà trouvés. Le niveau de chaque arme et de chaque pouvoir y est affiché.</li><li><b>Info</b> et <b>Ciel SMP</b> : la case Info présente le créateur du jeu ; la case Ciel SMP montre le classement des meilleurs joueurs et leurs récompenses sur le serveur Minecraft Ciel SMP (top 3 et tous les autres).</li><li><b>Tactile</b> : stick virtuel pour bouger, tir automatique, touchez la case pouvoir pour l’utiliser.</li><li><b>Pause</b> : Échap · <b>Son</b> : M (effets sonores).</li></ul></div><button id="howMore" class="btn ghost sm">Afficher plus</button>`;
+const HOW = `<ul class="how"><li><b>Se déplacer</b> : flèches ou ZQSD / WASD.</li><li><b>Viser</b> : le canon suit votre curseur.</li><li><b>Tirer</b> : maintenez le clic gauche.</li><li><b>Esquive</b> : Maj ou Espace (recharge 1,6 s).</li><li><b>Pouvoir</b> : rare, lâché par certains zombies. Il apparaît dans la case à côté de votre barre de vie et s’utilise plusieurs fois. <b>Clic droit</b> (ou touche E) pour l’activer.</li></ul><div id="howExtra" class="hide"><ul class="how"><li><b>Tir</b> : le pistolet tire un coup par clic ; les armes automatiques tirent tant que vous maintenez.</li><li><b>Armes</b> : certains zombies lâchent une arme (les meilleures n’arrivent que dans les vagues avancées). Chaque arme a sa propre réserve de munitions, avec un maximum différent (le sniper et le railgun en portent peu, la mitraillette et le minigun beaucoup). Elle s’affiche à côté du nom de l’arme. Ramasser une arme déjà possédée ou une caisse MU recharge les réserves. <b>Changer d’arme</b> : Q, molette de la souris ou toucher le nom de l’arme. Arme vide : vous passez à une autre arme chargée, sinon au couteau.</li><li><b>Bonus</b> : croix soin, bouclier, flèches vitesse, ×2 points, bombe, flocon gel (zombies ralentis), ! furie (tir ×2), caisse MU munitions, U aimant (attire les bonus).</li><li><b>Zombies</b> : chaque type rapporte des points différents. Méfiez-vous des cracheurs et des kamikazes.</li><li><b>Vagues</b> : elles deviennent de plus en plus dures jusqu’à la vague 100, avec plus de zombies au fil du temps, de nouveaux types dès les vagues 12 à 20 et un boss unique aux vagues 15, 25, 35, 45, 55, 65, 75, 85 et 100 (colosse toutes les 5 vagues, titan toutes les 10).</li><li><b>Combo</b> : enchaînez les kills pour des points et de l’argent en plus.</li><li><b>Argent</b> : vous en gagnez en direct en jouant, selon les zombies abattus, les combos, la distance parcourue et les vagues atteintes. Il s’affiche en haut à droite et est enregistré régulièrement.</li><li><b>Pouvoirs (12)</b> : Lasers, Onde de choc, Lames tournantes, Frappe aérienne, Tempête de balles, Soin de zone, Chrono, Barrière (invulnérable), Furie (tir ×2 et vitesse), Anneau de feu, Foudre (frappe les 8 zombies les plus proches) et Siphon (aspire la vie des zombies et vous soigne).</li><li><b>Boutique</b> (carte Argent) : achetez des skins.</li><li><b>Menu d’amélioration</b> (carte Argent) : toutes les armes et tous les pouvoirs sont là, jusqu’au niveau 5. Armes : +15 % de dégâts, tir plus rapide, +12 % de munitions par ramassage, balles perforantes au niveau 3. Pouvoirs : +15 % de puissance, +10 % de durée, +1 charge au niveau 3.</li><li><b>Améliorations de partie</b> : à la fin de chaque vague, choisissez 1 petite amélioration parmi 3 pour la partie en cours (14 améliorations différentes, la plupart s’empilent).</li><li><b>Profils</b> : consultez les comptes des autres joueurs. Le badge OK bleu marque les comptes certifiés.</li><li><b>Skins</b> (Mon espace) : 3 skins sont débloqués au départ, les autres s’achètent. Changez aussi la couleur du maillot, des cheveux et du teint, et la coiffure.</li><li><b>Titres</b> (Mon espace) : tuez des zombies, ramassez des armes, allez loin… pour débloquer des titres aux styles différents (faciles ou très durs). Au départ vous n’en avez aucun. Équipez-en un dans « Personnaliser mon profil » ou dans la case Titres, qui montre aussi comment débloquer chacun.</li><li><b>Découvertes</b> : Mon espace garde la liste des armes, zombies et pouvoirs déjà trouvés. Le niveau de chaque arme et de chaque pouvoir y est affiché.</li><li><b>Info</b> et <b>Ciel SMP</b> : la case Info présente le créateur du jeu ; la case Ciel SMP montre le classement des meilleurs joueurs et leurs récompenses sur le serveur Minecraft Ciel SMP (top 3 et tous les autres).</li><li><b>Tactile</b> : stick virtuel pour bouger, tir automatique, touchez la case pouvoir pour l’utiliser.</li><li><b>Pause</b> : Échap · <b>Son</b> : M (effets sonores).</li></ul></div><button id="howMore" class="btn ghost sm">Afficher plus</button>`;
 function icon(tab, o, d, id) {
   const c = document.createElement('canvas'); c.width = c.height = 96; const x = c.getContext('2d'); x.translate(48, 54);
   if (tab === 'z') headArt(x, id, o); else if (tab === 'q') { x.scale(2.4, 2.4); x.translate(0, -2); pArt(x, id, o.col); } else { x.translate(-3, -4); x.scale(1.05, 1.05); wArt(x, id, o.col); }
@@ -407,7 +445,7 @@ function info(tab) {
   $('infoBody').scrollTop = 0;
   curTab = tab; setBack(null);
   if (tab === 's') return stats(); if (tab === 'p') return profHome(); if (tab === 'k') return skins(); if (tab === 'b') return shop();
-  if (tab === 't') return titlesPage(); if (tab === 'a') return upgrades(); if (tab === 'v') return userList(); if (tab === 'n') return infoPage(); if (tab === 'c') return cielPage();
+  if (tab === 't') return titlesPage(); if (tab === 'a') return upgrades(); if (tab === 'v') return userList(); if (tab === 'n') return infoPage(); if (tab === 'c') return cielPage(); if (tab === 'h') return staffHome();
   const box = $('infoBody'); box.innerHTML = ''; box.className = 'grid2';
   const L = { w: ['Armes découvertes', WP, 'dw', 'wk'], z: ['Zombies découverts', TYPES, 'dz', 'zk'], q: ['Pouvoirs découverts', PW, 'dp', 'pk'] }[tab];
   $('infoT').textContent = L[0];
@@ -419,7 +457,7 @@ function info(tab) {
     const t = document.createElement('div'), b = document.createElement('b'), q = document.createElement('p'), s = document.createElement('small');
     b.textContent = d ? o.name : '???'; q.textContent = d ? o.desc : { w: 'Arme à trouver sur les zombies.', z: 'Zombie à abattre pour le découvrir.', q: 'Pouvoir rare à ramasser.' }[tab];
     if (d) {
-      if (tab === 'w') s.textContent = 'Niveau ' + lv + ' / ' + MAXLV + ' · Dégâts ' + +(o.dmg * (1 + .15 * lv) * o.n).toFixed(2) + ' · Munitions ' + (o.ammo ? Math.ceil(o.ammo * (1 + .12 * lv)) : '∞') + (o.tier ? ' · dès la vague ' + o.tier : '') + ' · Récupérée ×' + (cnt[id] || 0);
+      if (tab === 'w') s.textContent = 'Niveau ' + lv + ' / ' + MAXLV + ' · Dégâts ' + +(o.dmg * (1 + .15 * lv) * o.n).toFixed(2) + ' · Munitions : ' + (id === 'knife' ? 'aucune' : MAXAM[id] + ' maximum') + (o.tier ? ' · dès la vague ' + o.tier : '') + ' · Récupérée ×' + (cnt[id] || 0);
       else if (tab === 'q') s.textContent = 'Niveau ' + lv + ' / ' + MAXLV + ' · Durée ' + (o.dur ? +(o.dur * (1 + .1 * lv)).toFixed(1) + ' s' : 'instantané') + ' · ' + (o.n + (lv >= 3 ? 1 : 0)) + ' charges · Utilisé ×' + (cnt[id] || 0);
       else s.textContent = 'Vie ' + o.hp + ' · Vitesse ' + o.sp + ' · ' + o.pts + ' pt' + (o.pts > 1 ? 's' : '') + ' · Tué ×' + (cnt[id] || 0);
     } else if (lv > 0) s.textContent = 'Niveau ' + lv + ' / ' + MAXLV + ' (améliorée, pas encore trouvée)';
@@ -464,7 +502,7 @@ let curTab = '', backFn = null;
 const MAXLV = 5;
 const DF = { n: 'Normal', hp: 1, dm: 1, cash: 1, sc: 1, sp: 1 };
 const wlv = id => Math.min(MAXLV, ((cur && cur.wl) || {})[id] || 0);
-const maxAm = id => Math.ceil(WP[id].ammo * (1 + .12 * wlv(id)) * (1 + .3 * G.pk.am));
+const maxAm = id => Math.ceil((MAXAM[id] || 0) * (1 + .1 * G.pk.am));
 const wcost = id => Math.round((wlv(id) + 1) * (110 + (WP[id].tier || 0) * 35));
 const plv = id => Math.min(MAXLV, ((cur && cur.pl) || {})[id] || 0);
 const pm = id => 1 + .15 * plv(id);
@@ -477,7 +515,7 @@ function nameEl(u) { const s = mk('span', 'nm', u.name); if (u.cert) s.append(' 
 function fillTiles(box, list) { list.forEach(([l, v]) => { const t = mk('div', 'tile'); t.append(mk('b', '', v), mk('span', '', l)); box.appendChild(t); }); }
 function tileList(u) {
   const d = u.dist || 0, sum = o => Object.values(o || {}).reduce((a, b) => a + b, 0), zk = u.zk || {};
-  return [['Record', u.best || 0], ['Argent', fmt(u.money) + ' $'], ['Parties jouées', u.games || 0], ['Points gagnés (total)', u.total || 0], ['Zombies tués', u.kills || 0], ['Distance parcourue', d >= 1000 ? (d / 1000).toFixed(2) + ' km' : Math.round(d) + ' m'], ['Temps de jeu', Math.round((u.tp || 0) / 60) + ' min'], ['Meilleure vague', u.bw || 0], ['Tirs effectués', u.shots || 0], ['Colosses et titans abattus', (zk.boss || 0) + (zk.titan || 0)], ['Armes ramassées', sum(u.wk)], ['Pouvoirs utilisés', sum(u.pk)], ['Argent total gagné', fmt(u.earned) + ' $']];
+  return [['Record', u.best || 0], ['Argent', fmt(u.money) + ' $'], ['Parties jouées', u.games || 0], ['Points gagnés (total)', u.total || 0], ['Zombies tués', u.kills || 0], ['Distance parcourue', d >= 1000 ? (d / 1000).toFixed(2) + ' km' : Math.round(d) + ' m'], ['Temps de jeu', Math.round((u.tp || 0) / 60) + ' min'], ['Meilleure vague', u.bw || 0], ['Tirs effectués', u.shots || 0], ['Boss abattus', TS.boss(u)], ['Armes ramassées', sum(u.wk)], ['Pouvoirs utilisés', sum(u.pk)], ['Argent total gagné', fmt(u.earned) + ' $']];
 }
 async function profHome() {
   setBack(null); curTab = 'p';
@@ -540,7 +578,7 @@ function upgrades() {
   curTab = 'a';
   const box = $('infoBody'), st = box.scrollTop; box.innerHTML = ''; box.className = 'grid2';
   $('infoT').textContent = 'Menu d’amélioration';
-  $('infoC').textContent = 'Argent : ' + fmt(cur.money) + ' $ · Armes : +15 % de dégâts, tir plus rapide, +12 % de munitions, balles perforantes au niveau 3. Pouvoirs : +15 % de puissance, +10 % de durée, +1 charge au niveau 3.';
+  $('infoC').textContent = 'Argent : ' + fmt(cur.money) + ' $ · Armes : +15 % de dégâts, tir plus rapide, +12 % de munitions par ramassage, balles perforantes au niveau 3. Pouvoirs : +15 % de puissance, +10 % de durée, +1 charge au niveau 3.';
   const card = (kind, id, o) => {
     const w = kind === 'w', lv = w ? wlv(id) : plv(id), cost = w ? wcost(id) : pcost(id);
     const c = mk('div', 'cx'), t = mk('div'), e = mk('button', 'mini'), b = mk('b', '', o.name);
@@ -563,6 +601,104 @@ function upgrades() {
   for (const id of Object.keys(PW)) card('q', id, PW[id]);
   show('info'); box.scrollTop = st;
 }
+/* ---------- Contacter le staff : message privé, bugs, idées ---------- */
+const MAXTXT = 500;
+let lastSend = 0, fsort = 'new';
+const fdate = ts => ts ? new Date(ts).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+const newId = () => String(Date.now()).padStart(13, '0') + '_' + Math.random().toString(36).slice(2, 6);
+const rows = o => Object.entries(o || {}).filter(([, v]) => v && typeof v === 'object' && v.txt && !v.del);
+const fav = name => avEl({ name, col: COLS[parseInt(hash(name || '?'), 36) % COLS.length] }, 34);
+function whoEl(v) { const n = mk('span', 'nm', v.by || '?'); if (v.c) n.append(' ', certEl()); if (v.st) n.append(' ', mk('span', 'stf', 'STAFF')); return n; }
+function composer(ph, label, onSend, cool) {
+  const w = mk('div', 'cmp'), t = mk('textarea'), n = mk('small', 'note', '0 / ' + MAXTXT), b = mk('button', 'btn', label), e = mk('small', 'ferr');
+  t.maxLength = MAXTXT; t.rows = 4; t.placeholder = ph; t.oninput = () => { n.textContent = t.value.length + ' / ' + MAXTXT; };
+  b.onclick = async () => {
+    const v = t.value.trim(); e.textContent = '';
+    if (v.length < 3) { e.textContent = 'Message trop court.'; return; }
+    const wait = Math.ceil((lastSend + (cool || 15000) - Date.now()) / 1000); if (wait > 0) { e.textContent = 'Patientez ' + wait + ' s avant de renvoyer un message.'; return; }
+    b.disabled = true;
+    try { await onSend(v); lastSend = Date.now(); t.value = ''; n.textContent = '0 / ' + MAXTXT; } catch (x) { e.textContent = 'Envoi impossible. Vérifiez votre connexion.'; }
+    b.disabled = false;
+  };
+  w.append(t, n, b, e); return w;
+}
+function delBtn(f) { const b = mk('button', 'mini', 'Supprimer'); b.onclick = async () => { if (b.dataset.ok) { b.disabled = true; try { await f(); } catch (e) {} } else { b.dataset.ok = 1; b.textContent = 'Confirmer ?'; setTimeout(() => { b.dataset.ok = ''; b.textContent = 'Supprimer'; }, 3000); } }; return b; }
+function repEl(r, onDel) {
+  const d = mk('div', 'rep'), t = mk('div', 'fpn'); t.append(whoEl(r), mk('small', '', fdate(r.ts)));
+  const h = mk('div', 'fph'); h.append(r.st ? avEl({ name: 'S', col: '#2f8cff' }, 26) : fav(r.by), t); d.append(h, mk('p', 'fpt', r.txt));
+  if (onDel) d.append(delBtn(onDel)); return d;
+}
+function staffHome() {
+  curTab = 'h'; setBack(null); const box = $('infoBody'); box.className = 'staff'; box.replaceChildren(); box.scrollTop = 0;
+  $('infoT').textContent = 'Contacter le staff'; $('infoC').textContent = 'Une question, un bug, une idée ? Dites-le nous.';
+  const o = (t, d, f) => { const b = mk('button', 'btn ghost perk'); b.append(mk('b', '', t), mk('small', '', d)); b.onclick = f; return b; };
+  box.append(
+    o('Contacter le staff', 'Envoyez un message privé : seul le staff le lit et peut vous répondre.', staffMsg),
+    o('Signaler un bug', 'Publiez le bug. Les autres joueurs et le staff peuvent aimer et répondre.', () => feed('bug')),
+    o('Donner une idée d’amélioration', 'Proposez une idée. Les autres joueurs et le staff peuvent aimer et répondre.', () => feed('idea')));
+  show('info');
+}
+async function staffMsg() {
+  curTab = 'h'; setBack(staffHome); const box = $('infoBody'); box.className = 'staff'; box.replaceChildren(); box.scrollTop = 0;
+  $('infoT').textContent = 'Message au staff'; $('infoC').textContent = 'Message privé : visible uniquement par le staff.';
+  const list = mk('div', 'ul');
+  const draw = async first => {
+    if (first) list.replaceChildren(mk('small', '', 'Chargement…'));
+    let o; try { o = await dget('staffmsg/' + ckey); } catch (e) { list.replaceChildren(mk('small', '', 'Impossible de charger vos messages.')); return; }
+    const it = rows(o).sort((a, b) => a[0] < b[0] ? 1 : -1); list.replaceChildren();
+    if (!it.length) { list.append(mk('small', '', 'Aucun message envoyé pour l’instant.')); return; }
+    it.forEach(([id, v]) => {
+      const c = mk('div', 'fp'), h = mk('div', 'fph'), t = mk('div', 'fpn'); t.append(mk('span', 'nm', 'Vous'), mk('small', '', fdate(v.ts) + (v.read ? ' · lu par le staff' : ' · envoyé')));
+      h.append(avEl(cur, 34), t); c.append(h, mk('p', 'fpt', v.txt));
+      rows(v.rp).sort((a, b) => a[0] < b[0] ? -1 : 1).forEach(([, r]) => c.append(repEl({ ...r, st: 1 })));
+      list.appendChild(c);
+    });
+  };
+  const cmp = composer('Écrivez votre message au staff…', 'Envoyer au staff', async v => {
+    await dput('staffmsg/' + ckey + '/' + newId(), { by: cur.name, txt: v, ts: Date.now(), read: false }); await draw();
+  });
+  box.append(mk('p', 'note', 'Les réponses du staff apparaissent sous votre message.'), cmp, mk('h2', '', 'Mes messages'), list); show('info'); draw(true);
+}
+async function feed(type) {
+  const bug = type === 'bug', box = $('infoBody'); curTab = 'h'; setBack(staffHome); box.className = 'staff'; box.replaceChildren(); box.scrollTop = 0;
+  $('infoT').textContent = bug ? 'Signaler un bug' : 'Idées d’amélioration';
+  $('infoC').textContent = bug ? 'Décrivez le bug : quand il arrive, ce que vous faisiez. Les autres peuvent aimer et répondre.' : 'Proposez une idée pour améliorer le jeu. Les autres peuvent aimer et répondre.';
+  const list = mk('div', 'ul'), base = 'posts/' + type + '/';
+  const draw = async first => {
+    if (first) list.replaceChildren(mk('small', '', 'Chargement…'));
+    let o; try { o = await dget('posts/' + type); } catch (e) { list.replaceChildren(mk('small', '', 'Impossible de charger les publications.')); return; }
+    const lk = v => Object.keys(v.lk || {}).length, it = rows(o).sort((a, b) => fsort === 'top' ? lk(b[1]) - lk(a[1]) || (a[0] < b[0] ? 1 : -1) : (a[0] < b[0] ? 1 : -1));
+    list.replaceChildren(); if (!it.length) { list.append(mk('small', '', bug ? 'Aucun bug signalé pour l’instant.' : 'Aucune idée pour l’instant. Lancez-vous !')); return; }
+    it.forEach(([id, v]) => list.appendChild(postEl(base + id, v, draw)));
+  };
+  const cmp = composer(bug ? 'Décrivez le bug…' : 'Décrivez votre idée…', 'Publier', async v => {
+    await dput(base + newId(), { by: cur.name, k: ckey, c: cur.cert ? 1 : 0, txt: v, ts: Date.now() }); await draw();
+  });
+  const sb = mk('button', 'mini', fsort === 'top' ? 'Tri : les plus aimés' : 'Tri : les plus récents'); sb.onclick = () => { fsort = fsort === 'top' ? 'new' : 'top'; sb.textContent = fsort === 'top' ? 'Tri : les plus aimés' : 'Tri : les plus récents'; draw(); };
+  const rf = mk('button', 'mini', 'Actualiser'); rf.onclick = () => draw();
+  const bar = mk('div', 'row'); bar.append(sb, rf); bar.style.marginTop = '0';
+  box.append(cmp, mk('h2', '', bug ? 'Bugs signalés' : 'Idées proposées'), bar, list); show('info'); draw(true);
+}
+function postEl(path, v, redraw) {
+  const c = mk('div', 'fp'), h = mk('div', 'fph'), t = mk('div', 'fpn'), mine = v.k === ckey;
+  t.append(whoEl(v), mk('small', '', fdate(v.ts))); h.append(v.st ? avEl({ name: 'S', col: '#2f8cff' }, 34) : fav(v.by), t);
+  if (v.status) h.append(mk('span', 'stt', v.status));
+  c.append(h, mk('p', 'fpt', v.txt));
+  const lks = Object.keys(v.lk || {}), me = lks.includes(ckey), act = mk('div', 'fpa');
+  const bl = mk('button', 'mini' + (me ? ' on' : ''), (me ? '♥ ' : '♡ ') + lks.length + ' J’aime');
+  bl.onclick = async () => { bl.disabled = true; try { if (me) await ddel(path + '/lk/' + ckey); else await dput(path + '/lk/' + ckey, 1); } catch (e) {} redraw(); };
+  const reps = rows(v.rp).sort((a, b) => a[0] < b[0] ? -1 : 1), br = mk('button', 'mini', 'Répondre' + (reps.length ? ' (' + reps.length + ')' : ''));
+  act.append(bl, br); if (lks.includes('staff')) act.append(mk('span', 'stf', 'Aimé par le staff'));
+  if (mine) act.append(delBtn(async () => { await ddel(path); redraw(); }));
+  c.appendChild(act);
+  const rl = mk('div', 'reps'); reps.forEach(([id, r]) => rl.append(repEl(r, r.k === ckey && !r.st ? async () => { await ddel(path + '/rp/' + id); redraw(); } : null))); c.appendChild(rl);
+  const box = composer('Votre réponse…', 'Répondre', async txt => {
+    await dput(path + '/rp/' + newId(), { by: cur.name, k: ckey, c: cur.cert ? 1 : 0, txt, ts: Date.now() }); redraw();
+  }, 5000);
+  box.classList.add('hide'); br.onclick = () => box.classList.toggle('hide'); c.appendChild(box);
+  return c;
+}
+
 /* ---------- Info et Ciel SMP ---------- */
 function infoPage() {
   curTab = 'n'; const box = $('infoBody'); box.className = 'apropos'; box.replaceChildren();
@@ -589,7 +725,7 @@ const sm = o => Object.values(o || {}).reduce((a, b) => a + b, 0);
 const TS = {
   games: u => u.games || 0, kills: u => u.kills || 0, wk: u => sm(u.wk), pk: u => sm(u.pk), dist: u => u.dist || 0, tp: u => (u.tp || 0) / 60,
   bw: u => u.bw || 0, best: u => u.best || 0, shots: u => u.shots || 0, earned: u => u.earned || 0, bc: u => u.bc || 0,
-  boss: u => ((u.zk || {}).boss || 0) + ((u.zk || {}).titan || 0), titan: u => (u.zk || {}).titan || 0,
+  boss: u => Object.keys(TYPES).filter(k => TYPES[k].big).reduce((a, k) => a + ((u.zk || {})[k] || 0), 0), titan: u => (u.zk || {}).titan || 0,
   dz: u => (u.dz || []).length, dw: u => (u.dw || []).length, dp: u => (u.dp || []).length, os: u => (u.os || []).length,
   up: u => sm(u.wl) + sm(u.pl), vw: u => (u.vw || []).length, cert: u => u.cert ? 1 : 0
 };
@@ -599,7 +735,7 @@ const TD = {
   games: n => 'Terminer ' + pls(n, 'partie', 'parties'), kills: n => 'Tuer ' + pls(n, 'zombie', 'zombies'), wk: n => 'Ramasser ' + pls(n, 'arme', 'armes'),
   pk: n => 'Utiliser ' + pls(n, 'pouvoir', 'pouvoirs'), dist: n => 'Parcourir ' + (n >= 1000 ? fmt(n / 1000) + ' km' : n + ' m'), tp: n => 'Jouer ' + fmt(n) + ' minutes au total',
   bw: n => 'Atteindre la vague ' + n, best: n => 'Marquer ' + fmt(n) + ' points en une seule partie', shots: n => 'Tirer ' + fmt(n) + ' fois', earned: n => 'Gagner ' + fmt(n) + ' $ au total',
-  boss: n => 'Abattre ' + pls(n, 'colosse ou titan', 'colosses ou titans'), titan: n => 'Abattre ' + pls(n, 'titan', 'titans'), bc: n => 'Atteindre un combo de ×' + n,
+  boss: n => 'Abattre ' + pls(n, 'boss', 'boss'), titan: n => 'Abattre ' + pls(n, 'titan', 'titans'), bc: n => 'Atteindre un combo de ×' + n,
   dz: n => 'Découvrir ' + n + ' zombies', dw: n => 'Découvrir ' + n + ' armes', dp: n => 'Découvrir ' + n + ' pouvoirs', os: n => 'Posséder ' + n + ' skins',
   up: n => 'Cumuler ' + n + ' niveaux d’amélioration (armes et pouvoirs)', vw: n => 'Faire visiter votre profil par ' + pls(n, 'joueur', 'joueurs'), cert: () => 'Obtenir un compte certifié'
 };
@@ -620,7 +756,7 @@ const TLIST = [
   ['bestiaire', 'Bestiaire complet', 'toxic', 'dz', 'all', 'Découvrir tous les zombies'], ['armurier', 'Maître armurier', 'gold', 'wk', 500],
   ['increvable', 'Increvable', 'gold', 'games', 100], ['e10000', 'Magnat', 'gold', 'earned', 10000], ['parfait', 'Arsenal parfait', 'gold', 'up', 60],
   ['surv20', 'Légende de la nuit', 'fire', 'bw', 20], ['geants', 'Fléau des géants', 'fire', 'boss', 25], ['c60', 'Inarrêtable', 'fire', 'bc', 60],
-  ['s15000', 'Maître du carnage', 'royal', 'best', 15000], ['e50000', 'Roi de l’or', 'royal', 'earned', 50000], ['surv30', 'Immortel', 'royal', 'bw', 30],
+  ['s15000', 'Maître du carnage', 'royal', 'best', 15000], ['e50000', 'Roi de l’or', 'royal', 'earned', 50000], ['surv30', 'Immortel', 'royal', 'bw', 30], ['surv50', 'Roi de la nuit', 'royal', 'bw', 50], ['surv100', 'Dernier survivant', 'rainbow', 'bw', 100], ['boss10', 'Tueur de boss', 'purple', 'boss', 10],
   ['apoc', 'Apocalypse', 'rainbow', 'kills', 10000], ['garde', 'Garde-robe complète', 'rainbow', 'os', 'all', 'Posséder tous les skins'],
   ['cert', 'Compte certifié', 'cert', 'cert', 1]
 ].map(([id, name, k, st, n, d]) => ({ id, name, k, st, n, d }));
@@ -728,7 +864,7 @@ const TYPES = {
   spit:  { name: 'Cracheur', r: 15, hp: 5, sp: 50, pts: 4, c: '#7fe3d0', dk: '#2a8f86', dmg: 10, desc: 'Garde ses distances et crache de l’acide. 4 points.' },
   tank:  { name: 'Costaud', r: 23, hp: 14, sp: 40, pts: 5, c: '#a98be0', dk: '#5e3fa0', dmg: 20, desc: 'Beaucoup de vie. Lâche souvent une arme. 5 points.' },
   brute: { name: 'Blindé', r: 28, hp: 34, sp: 46, pts: 10, c: '#8a97ad', dk: '#4a5468', dmg: 25, desc: 'Très résistant, lâche souvent une arme rare. 10 points.' },
-  boss:  { name: 'Colosse', r: 42, hp: 140, sp: 50, pts: 25, c: '#ff5a5a', dk: '#9c2230', dmg: 30, desc: 'Arrive toutes les 5 vagues. Arme rare garantie. 25 points.' },
+  boss:  { big: true, name: 'Colosse', r: 42, hp: 140, sp: 50, pts: 25, c: '#ff5a5a', dk: '#9c2230', dmg: 30, desc: 'Arrive toutes les 5 vagues. Arme rare garantie. 25 points.' },
   crawler: { name: 'Rampant', r: 9, hp: 1.5, sp: 150, pts: 2, c: '#c9a27a', dk: '#7a5a3a', dmg: 6, desc: 'Minuscule et très rapide, difficile à viser. 2 points.' },
   toxic: { name: 'Putréfié', r: 19, hp: 9, sp: 66, pts: 6, c: '#9bd24a', dk: '#4f7a1c', dmg: 16, desc: 'Gonflé et solide, frappe fort. 6 points.' },
   berserk: { name: 'Enragé', r: 18, hp: 10, sp: 115, pts: 8, c: '#ff6fa0', dk: '#a02050', dmg: 22, desc: 'Fonce droit sur vous. Très dangereux. 8 points.' },
@@ -736,8 +872,35 @@ const TYPES = {
   leaper: { name: 'Sauteur', r: 13, hp: 4, sp: 80, pts: 4, c: '#e0a050', dk: '#8a5a20', dmg: 14, desc: 'Bondit sur vous par à-coups. 4 points.' },
   scream: { name: 'Hurleur', r: 16, hp: 7, sp: 60, pts: 6, c: '#d9a0e8', dk: '#7a3f8f', dmg: 10, desc: 'Son cri accélère les zombies proches. À abattre en priorité. 6 points.' },
   necro: { name: 'Nécromancien', r: 18, hp: 14, sp: 55, pts: 12, c: '#6a7fd8', dk: '#2a3a8a', dmg: 12, desc: 'Garde ses distances et invoque des Rôdeurs. 12 points.' },
-  titan: { name: 'Titan', r: 52, hp: 260, sp: 42, pts: 60, c: '#d94a8a', dk: '#7a1a4a', dmg: 40, desc: 'Arrive toutes les 10 vagues. Lance des anneaux d’acide. Arme rare garantie. 60 points.' }
+  titan: { big: true, name: 'Titan', r: 52, hp: 260, sp: 42, pts: 60, c: '#d94a8a', dk: '#7a1a4a', dmg: 40, desc: 'Arrive toutes les 10 vagues. Lance des anneaux d’acide. Arme rare garantie. 60 points.' },
+  ghoul: { name: 'Goule', r: 15, hp: 16, sp: 128, pts: 9, c: '#b8c97a', dk: '#5a6a2a', dmg: 18, desc: 'Rapide et résistante. Apparaît dès la vague 12. 9 points.' },
+  archer: { name: 'Tireur', r: 14, hp: 8, sp: 55, pts: 10, c: '#e8b87a', dk: '#8a5a2a', dmg: 10, desc: 'Garde ses distances et tire des projectiles rapides. Dès la vague 14. 10 points.' },
+  juggernaut: { name: 'Mastodonte', r: 34, hp: 70, sp: 40, pts: 18, c: '#7a8aa8', dk: '#3a4660', dmg: 34, desc: 'Un mur de muscles qui lâche souvent une arme. Dès la vague 15. 18 points.' },
+  medic: { name: 'Soigneur', r: 16, hp: 12, sp: 56, pts: 14, c: '#a8e8d0', dk: '#2a8a6a', dmg: 8, desc: 'Soigne les zombies autour de lui. À abattre en priorité. Dès la vague 18. 14 points.' },
+  phantom: { name: 'Spectre', r: 15, hp: 14, sp: 90, pts: 12, c: '#b0b8ff', dk: '#4a52b0', dmg: 18, desc: 'Se téléporte près de vous. Dès la vague 20. 12 points.' },
+  warlord: { big: true, name: 'Seigneur de guerre', r: 46, hp: 220, sp: 58, pts: 90, c: '#d0703a', dk: '#7a2a10', dmg: 34, ab: ['summon', 'charge'], mn: 'walk', desc: 'Boss de la vague 15. Invoque des Rôdeurs et charge. Arme rare garantie. 90 points.' },
+  plague: { big: true, name: 'Roi de la peste', r: 48, hp: 320, sp: 46, pts: 140, c: '#8ac03a', dk: '#3a5a10', dmg: 36, ab: ['ring', 'summon'], mn: 'toxic', desc: 'Boss de la vague 25. Anneaux d’acide et Putréfiés invoqués. 140 points.' },
+  reaper: { big: true, name: 'Faucheur', r: 44, hp: 420, sp: 85, pts: 200, c: '#6a5a8a', dk: '#241a3a', dmg: 42, ab: ['charge', 'blink'], desc: 'Boss de la vague 35. Très rapide, charge et se téléporte. 200 points.' },
+  hydra: { big: true, name: 'Hydre', r: 58, hp: 650, sp: 50, pts: 280, c: '#3ab08a', dk: '#0f5a44', dmg: 44, ab: ['ring', 'fan', 'summon'], mn: 'splitter', desc: 'Boss de la vague 45. Éventails et anneaux de projectiles, invoque des Gluants. 280 points.' },
+  overlord: { big: true, name: 'Seigneur des morts', r: 54, hp: 900, sp: 52, pts: 380, c: '#5a6ad8', dk: '#1a2470', dmg: 46, ab: ['summon', 'ring', 'blink'], mn: 'berserk', desc: 'Boss de la vague 55. Invoque des Enragés, tire en anneau et se téléporte. 380 points.' },
+  abyss: { big: true, name: 'Abomination', r: 64, hp: 1250, sp: 56, pts: 520, c: '#a03a8a', dk: '#4a0a3a', dmg: 52, ab: ['charge', 'fan', 'ring'], desc: 'Boss de la vague 65. Charge et tir de toutes parts. 520 points.' },
+  doom: { big: true, name: 'Fléau', r: 60, hp: 1700, sp: 66, pts: 700, c: '#e04a3a', dk: '#6a0a10', dmg: 58, ab: ['summon', 'charge', 'fan', 'blink'], mn: 'ghoul', desc: 'Boss de la vague 75. Invoque des Goules, charge, tire et se téléporte. 700 points.' },
+  dragon: { big: true, name: 'Bête ancienne', r: 68, hp: 2300, sp: 62, pts: 900, c: '#e0a030', dk: '#7a4a08', dmg: 64, ab: ['ring', 'fan', 'charge', 'summon'], mn: 'juggernaut', desc: 'Boss de la vague 85. Invoque des Mastodontes. 900 points.' },
+  apoc: { big: true, name: 'Dernier des morts', r: 76, hp: 4000, sp: 60, pts: 2000, c: '#f0f0ff', dk: '#2a2a4a', dmg: 80, ab: ['summon', 'ring', 'fan', 'charge', 'blink'], mn: 'ghoul', desc: 'Boss final de la vague 100. Toutes les attaques à la fois. 2000 points.' }
 };
+const UB = { 15: 'warlord', 25: 'plague', 35: 'reaper', 45: 'hydra', 55: 'overlord', 65: 'abyss', 75: 'doom', 85: 'dragon', 100: 'apoc' };
+const zcap = () => Math.min(150, 70 + Math.max(0, G.wave - 10) * 2);
+const waveCount = w => { let n = 6 + w * 4.6; if (w > 8) n += (w - 8) * (w - 8) * .5; return Math.min(450, Math.round(n * G.df.sp)); };
+function bossAI(z, d, dx, dy, dt) {
+  const g = G, p = g.p, tm = z.tm, T = (k, v) => { tm[k] = (tm[k] ?? v * .6) - dt; if (tm[k] > 0) return false; tm[k] = v; return true; };
+  for (const a of z.ab) {
+    if (a === 'summon') { if (T('s', 7) && g.z.length < zcap()) { sfx('wave'); for (let k = 0; k < 3; k++) spawnZ(z.mn || 'walk', z.x + rnd(-50, 50), z.y + rnd(-50, 50)); } }
+    else if (a === 'ring') { if (T('r', 3.6)) { const o = rnd(0, 6.283); for (let k = 0; k < 14; k++) { const an = o + k * .4488; g.eb.push({ x: z.x, y: z.y, vx: Math.cos(an) * 240, vy: Math.sin(an) * 240, l: 3.2, d: 12 }); } } }
+    else if (a === 'fan') { if (T('f', 2.4) && d < 800) { const b = Math.atan2(dy, dx); for (let k = -2; k <= 2; k++) { const an = b + k * .2; g.eb.push({ x: z.x, y: z.y, vx: Math.cos(an) * 330, vy: Math.sin(an) * 330, l: 2.6, d: 14 }); } } }
+    else if (a === 'charge') { if (T('c', 5) && d > 140 && d < 700) { z.kx += dx / d * 1500; z.ky += dy / d * 1500; } }
+    else if (a === 'blink') { if (T('b', 6.5) && d > 220) { const an = rnd(0, 6.283); z.x = clamp(p.x + Math.cos(an) * 170, 30, WORLD - 30); z.y = clamp(p.y + Math.sin(an) * 170, 30, WORLD - 30); g.fx.push({ k: 'ring', x: z.x, y: z.y, t: .4, m: .4, r: 80, c: z.c }); } }
+  }
+}
 const WP = {
   pistol:  { name: 'Pistolet', ab: 'PI', rate: .28, dmg: 1, n: 1, sp: .03, v: 780, life: .8, auto: false, pl: 0, ammo: 0, col: '#ffd27a', desc: 'Arme de départ. Un tir par clic, munitions infinies.' },
   smg:     { name: 'Mitraillette', ab: 'MI', rate: .09, dmg: .8, n: 1, sp: .1, v: 800, life: .8, auto: true, pl: 0, ammo: 140, col: '#ffb347', desc: 'Tir automatique rapide, peu précis.' },
@@ -752,7 +915,7 @@ const WP = {
   railgun: { name: 'Railgun', ab: 'RG', rate: 1.2, dmg: 14, n: 1, sp: 0, v: 1400, life: 1, auto: false, pl: 10, ammo: 10, col: '#7fffe0', desc: 'Un rayon qui transperce jusqu’à 11 zombies.' },
   mini:    { name: 'Minigun', ab: 'MG', rate: .045, dmg: .7, n: 1, sp: .15, v: 850, life: .8, auto: true, pl: 1, ammo: 320, col: '#ff4d5e', desc: 'Cadence folle. Les balles traversent 2 zombies.' }
 };
-Object.assign(WP.pistol, { ammo: 60, desc: 'Arme de départ : 60 balles, puis le couteau.' });
+Object.assign(WP.pistol, { ammo: 60, desc: 'Arme de départ. Réserve de munitions propre ; quand elle est vide, une autre arme ou le couteau.' });
 Object.assign(WP, {
   dual:     { name: 'Pistolets jumeaux', ab: 'PJ', rate: .15, dmg: .9, n: 2, sp: .12, v: 800, life: .8, auto: true, pl: 0, ammo: 150, col: '#ffe08a', desc: 'Deux pistolets automatiques : double tir, cadence rapide.' },
   launcher: { name: 'Lance-grenades', ab: 'LG', rate: .9, dmg: 2, n: 1, sp: .02, v: 520, life: .9, auto: false, pl: 0, ammo: 14, col: '#ff9a3c', ex: { r: 90, d: 7 }, desc: 'Grenades explosives : dégâts de zone.' },
@@ -836,10 +999,10 @@ function skinArt(x, s, hit) {
   });
 }
 function headArt(x, id, o) {
-  const c = o.c, dk = o.dk, s = { boss: .8, titan: .78, brute: 1.02, tank: 1.02, crawler: .8, fast: .88 }[id] || .94, rx = id === 'tank' ? 35 : 31;
+  const c = o.c, dk = o.dk, s = { boss: .8, titan: .78, brute: 1.02, tank: 1.02, crawler: .8, fast: .88 }[id] || (o.big ? .76 : .94), rx = id === 'tank' ? 35 : 31;
   const hp = () => { x.beginPath(); x.ellipse(0, 0, rx, 36, 0, 0, 7); };
   x.save(); x.scale(s, s); x.lineJoin = 'round'; x.lineWidth = 3; x.strokeStyle = dk;
-  if (id === 'boss' || id === 'titan') { x.fillStyle = '#2a1018'; [-1, 1].forEach(k => { x.beginPath(); x.moveTo(k * 16, -28); x.lineTo(k * 38, -62); x.lineTo(k * 32, -16); x.closePath(); x.fill(); x.stroke(); }); }
+  if (o.big) { x.fillStyle = '#2a1018'; [-1, 1].forEach(k => { x.beginPath(); x.moveTo(k * 16, -28); x.lineTo(k * 38, -62); x.lineTo(k * 32, -16); x.closePath(); x.fill(); x.stroke(); }); }
   x.fillStyle = c; [-1, 1].forEach(k => { x.beginPath(); x.ellipse(k * (rx + 1), 2, 7, 11, 0, 0, 7); x.fill(); x.stroke(); });
   hp(); x.fill(); x.stroke();
   if (id === 'walk' || id === 'toxic') { x.globalAlpha = .45; x.fillStyle = dk; x.beginPath(); x.arc(-17, -20, 7, 0, 7); x.arc(15, 18, 6, 0, 7); x.arc(-8, 26, 4, 0, 7); x.fill(); x.globalAlpha = 1; }
@@ -851,7 +1014,7 @@ function headArt(x, id, o) {
   if (id === 'splitter') { x.beginPath(); x.moveTo(0, -36); x.lineTo(-3, -10); x.lineTo(3, 10); x.lineTo(0, 36); x.stroke(); x.fillStyle = c; x.beginPath(); x.arc(25, -28, 10, 0, 7); x.fill(); x.stroke(); }
   const er = id === 'crawler' ? 8.5 : id === 'tank' ? 5.5 : 7, ey = id === 'brute' ? 2 : -6;
   [-1, 1].forEach(k => { x.fillStyle = id === 'boss' ? '#ffd24a' : '#eef0d8'; x.beginPath(); x.arc(k * 13, ey, er, 0, 7); x.fill(); x.stroke(); x.fillStyle = id === 'berserk' ? '#ff1030' : '#ff3b3b'; x.beginPath(); x.arc(k * 13 + k * (id === 'crawler' ? 1.5 : 0), ey, er * (id === 'berserk' ? .6 : .45), 0, 7); x.fill(); });
-  if (id === 'berserk' || id === 'tank' || id === 'boss' || id === 'titan') { x.strokeStyle = '#220010'; x.lineWidth = 5; x.beginPath(); x.moveTo(-24, -20); x.lineTo(-6, -11); x.moveTo(24, -20); x.lineTo(6, -11); x.stroke(); x.strokeStyle = dk; x.lineWidth = 3; }
+  if (id === 'berserk' || id === 'tank' || o.big) { x.strokeStyle = '#220010'; x.lineWidth = 5; x.beginPath(); x.moveTo(-24, -20); x.lineTo(-6, -11); x.moveTo(24, -20); x.lineTo(6, -11); x.stroke(); x.strokeStyle = dk; x.lineWidth = 3; }
   if (id === 'berserk') { x.strokeStyle = '#220010'; x.lineWidth = 2.5; x.beginPath(); x.moveTo(12, 6); x.lineTo(26, 18); x.moveTo(26, 6); x.lineTo(12, 18); x.stroke(); x.strokeStyle = dk; x.lineWidth = 3; }
   x.fillStyle = dk; x.beginPath(); x.arc(-3, 7, 2, 0, 7); x.arc(3, 7, 2, 0, 7); x.fill();
   const my = 21;
@@ -859,7 +1022,7 @@ function headArt(x, id, o) {
   else {
     x.fillStyle = '#26121a'; x.beginPath(); x.ellipse(0, my, 15, 8, 0, 0, 7); x.fill(); x.stroke(); x.fillStyle = '#eef0d8';
     for (let i = -2; i <= 2; i++) x.fillRect(i * 5.4 - 2, my - 7.5, 4, 5);
-    if (id === 'boss' || id === 'titan' || id === 'berserk') for (const k of [-1, 1]) { x.beginPath(); x.moveTo(k * 9, my - 2); x.lineTo(k * 12, my + 9); x.lineTo(k * 5, my - 1); x.fill(); }
+    if (o.big || id === 'berserk') for (const k of [-1, 1]) { x.beginPath(); x.moveTo(k * 9, my - 2); x.lineTo(k * 12, my + 9); x.lineTo(k * 5, my - 1); x.fill(); }
   }
   if (id === 'toxic') { x.fillStyle = '#b7f06a'; x.beginPath(); x.moveTo(5, my + 6); x.quadraticCurveTo(9, my + 18, 13, my + 6); x.closePath(); x.fill(); }
   x.restore();
@@ -899,31 +1062,44 @@ function drawSplats(cx, cy) {
 }
 
 /* ---------- Argent ---------- */
-function cashParts() {
-  const g = G, k = g.cz, c = g.cc, d = Math.floor(g.dist / 10), w = Math.max(0, g.wave - 1) * 8;
-  return { k, c, d, w, total: Math.round((k + c + d + w) * g.df.cash) };
+/* L'argent est gagné EN DIRECT : zombies tués, combos, distance et vagues. Il s'affiche dans le HUD
+   et est enregistré toutes les 8 s (et à la fin de la partie). */
+function gainCash(n, k) { const g = G, v = Math.round(n * g.df.cash); if (v <= 0) return 0; g.cash += v; g[k] += v; return v; }
+function cashParts() { const g = G; return { k: g.cz, c: g.cc, d: g.cd, w: g.cw, total: g.cash }; }
+async function saveCash() {
+  const g = G, d = g.cash - g.cs; if (d <= 0 || g.saving || !ckey) return; g.saving = true;
+  try {
+    const u = (await getUser(ckey)) || cur, m = (u.money || 0) + d, e = (u.earned || 0) + d;
+    await patchUser(ckey, { money: m, earned: e }); g.cs += d; cur.money = m; cur.earned = e;
+  } catch (e) { /* réessayé au prochain passage */ } finally { g.saving = false; }
 }
+addEventListener('visibilitychange', () => { if (document.hidden && G.playing && !G.over) saveCash(); });
 
 /* ---------- Améliorations de partie ---------- */
 const PERKS = [
-  { id: 'dm', n: 'Balles lourdes', d: '+15 % de dégâts', mx: 5 },
-  { id: 'rt', n: 'Gâchette facile', d: 'Tir 12 % plus rapide', mx: 4 },
-  { id: 'sp', n: 'Jambes de feu', d: '+10 % de vitesse de déplacement', mx: 4 },
-  { id: 'hp', n: 'Constitution', d: '+25 PV maximum et soin complet', mx: 4 },
-  { id: 'rg', n: 'Régénération', d: '+1 PV par seconde', mx: 4 },
-  { id: 'am', n: 'Sac à munitions', d: '+30 % de munitions et recharge de l’arme', mx: 3 },
-  { id: 'dh', n: 'Esquive vive', d: 'L’esquive recharge plus vite', mx: 3 },
-  { id: 'lt', n: 'Pilleur', d: 'Plus de bonus lâchés par les zombies', mx: 3 },
-  { id: 'pl', n: 'Perforation', d: 'Les balles traversent 1 zombie de plus', mx: 2 }
+  { id: 'dm', n: 'Balles lourdes', d: '+6 % de dégâts', mx: 12 },
+  { id: 'rt', n: 'Gâchette facile', d: 'Tir 4 % plus rapide', mx: 10 },
+  { id: 'sp', n: 'Jambes de feu', d: '+4 % de vitesse de déplacement', mx: 10 },
+  { id: 'hp', n: 'Constitution', d: '+10 PV maximum et +10 PV', mx: 10 },
+  { id: 'rg', n: 'Régénération', d: '+0,3 PV par seconde', mx: 10 },
+  { id: 'am', n: 'Sac à munitions', d: '+10 % de munitions maximum par arme et recharge de 20 % de chaque arme', mx: 8 },
+  { id: 'dh', n: 'Esquive vive', d: 'L’esquive recharge 5 % plus vite', mx: 8 },
+  { id: 'lt', n: 'Pilleur', d: '+10 % de bonus lâchés par les zombies', mx: 8 },
+  { id: 'pl', n: 'Perforation', d: 'Les balles traversent 1 zombie de plus', mx: 2 },
+  { id: 'cr', n: 'Coup critique', d: '+4 % de chance de dégâts doublés', mx: 8 },
+  { id: 'ar', n: 'Armure', d: '3 % de dégâts reçus en moins', mx: 8 },
+  { id: 'vm', n: 'Vampirisme', d: '+0,25 PV par zombie abattu', mx: 8 },
+  { id: 'pt', n: 'Chasseur de primes', d: '+5 % de points', mx: 8 },
+  { id: 'bo', n: 'Bonus durables', d: '+10 % de durée des bonus', mx: 6 }
 ];
 function perkChoose() {
   const g = G, o = PERKS.filter(k => g.pk[k.id] < k.mx).sort(() => Math.random() - .5).slice(0, 3); if (!o.length) return;
   g.paused = true; g.perk = true; down = false; for (const kk in K) K[kk] = 0;
-  const box = $('perkL'); box.replaceChildren(); $('perkS').textContent = 'Valable pour cette partie · vague ' + g.wave;
+  const box = $('perkL'); box.replaceChildren(); $('perkS').textContent = 'Vague ' + (g.wave - 1) + ' terminée · petite amélioration valable pour cette partie';
   o.forEach(k => {
     const b = mk('button', 'btn ghost perk'), lv = g.pk[k.id];
     b.append(mk('b', '', k.n + (lv ? ' (niveau ' + (lv + 1) + ')' : '')), mk('small', '', k.d));
-    b.onclick = () => { g.pk[k.id]++; if (k.id === 'hp') { g.p.mhp += 25; g.p.hp = g.p.mhp; } if (k.id === 'am' && g.wp !== 'knife') g.ammo = maxAm(g.wp); g.perk = false; g.paused = false; show(null); };
+    b.onclick = () => { g.pk[k.id]++; if (k.id === 'hp') { g.p.mhp += 10; g.p.hp = Math.min(g.p.mhp, g.p.hp + 10); } if (k.id === 'am') addAmmoAll(.2); g.perk = false; g.paused = false; show(null); };
     box.appendChild(b);
   });
   show('perk');
@@ -939,11 +1115,11 @@ function usePower() {
   const id = g.ph, p = g.p; if (--g.pc <= 0) { g.ph = null; g.pc = 0; } g.pu[id] = (g.pu[id] || 0) + 1; sfx(id);
   if (id === 'nova') {
     g.fx.push({ k: 'ring', x: p.x, y: p.y, t: .55, m: .55, r: 290, c: PW.nova.col });
-    for (const z of g.z) { const dx = z.x - p.x, dy = z.y - p.y, d = Math.hypot(dx, dy) || 1; if (d < 290) { z.hp -= (z.t === 'boss' ? 8 : 6) * pm('nova'); z.fl = .1; z.kx += dx / d * 700; z.ky += dy / d * 700; gore(z.x, z.y, Math.atan2(dy, dx), 8, 300); } }
+    for (const z of g.z) { const dx = z.x - p.x, dy = z.y - p.y, d = Math.hypot(dx, dy) || 1; if (d < 290) { z.hp -= (z.big ? 8 : 6) * pm('nova'); z.fl = .1; z.kx += dx / d * 700; z.ky += dy / d * 700; gore(z.x, z.y, Math.atan2(dy, dx), 8, 300); } }
     g.eb.length = 0; shake = 16;
   } else if (id === 'thunder') {
     const m = pm('thunder'), tg = g.z.slice().sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y)).slice(0, 8);
-    tg.forEach(z => { z.hp -= (z.t === 'boss' || z.t === 'titan' ? 10 : 12) * m; z.fl = .15; gore(z.x, z.y, Math.atan2(z.y - p.y, z.x - p.x), 8, 300); g.fx.push({ k: 'bolt', x: p.x, y: p.y, x2: z.x, y2: z.y, t: .3, m: .3, c: PW.thunder.col }); });
+    tg.forEach(z => { z.hp -= (z.big ? 10 : 12) * m; z.fl = .15; gore(z.x, z.y, Math.atan2(z.y - p.y, z.x - p.x), 8, 300); g.fx.push({ k: 'bolt', x: p.x, y: p.y, x2: z.x, y2: z.y, t: .3, m: .3, c: PW.thunder.col }); });
     shake = Math.max(shake, 10);
   } else g.pa = { id, t: pdur(id), n: 0 };
 }
@@ -1109,34 +1285,35 @@ function start() {
   if (!cur) return showMenu();
   G = {
     playing: true, paused: false, t: 0, wave: 0, score: 0, kills: 0, brk: 0, dc: 0, combo: 0, ct: 0, dist: 0, shots: 0, zk: {}, wk: {}, lx: WORLD / 2, ly: WORLD / 2, flash: 0, spawnLeft: 0, spawnT: 1,
-    wp: 'pistol', ammo: WP.pistol.ammo, am: {}, bc: 0, tmr: {}, cz: 0, cc: 0, sp: [], fx: [], st: [], ph: null, pa: null, pu: {}, sk: skinOf(cur), eb: [], z: [], b: [], pt: [], ft: [], dr: [],
-    df: DF, pk: { dm: 0, rt: 0, sp: 0, hp: 0, rg: 0, am: 0, dh: 0, lt: 0, pl: 0 }, pc: 0, perk: false,
+    wp: 'pistol', am: {}, own: { pistol: 1 }, last: 'pistol', bc: 0, tmr: {}, cz: 0, cc: 0, cd: 0, cw: 0, dpd: 0, cash: 0, cs: 0, saving: false, sv: 0, sp: [], fx: [], st: [], ph: null, pa: null, pu: {}, sk: skinOf(cur), eb: [], z: [], b: [], pt: [], ft: [], dr: [],
+    df: DF, pk: Object.fromEntries(PERKS.map(k => [k.id, 0])), pc: 0, perk: false,
     p: { x: WORLD / 2, y: WORLD / 2, hp: 100, mhp: 100, r: 15, cd: 0, hit: 0, ang: 0, dt: 0 }
   };
-  G.ammo = maxAm('pistol'); Object.keys(K).forEach(k => K[k] = 0);
+  G.am.pistol = maxAm('pistol'); Object.keys(K).forEach(k => K[k] = 0);
   audio(); show(null); hud(true); down = false; edge = 0; nextWave();
 }
 function nextWave() {
-  G.wave++; sfx('wave'); G.spawnLeft = Math.round((5 + G.wave * 4) * G.df.sp); G.spawnT = 1.2;
+  G.wave++; if (G.wave > 1) { gainCash(8, 'cw'); saveCash(); } sfx('wave'); G.spawnLeft = waveCount(G.wave); G.spawnT = 1.2;
   G.p.hp = Math.min(G.p.mhp, G.p.hp + 20);
   const bn = $('banner'); bn.classList.remove('hide'); bn.style.animation = 'none'; void bn.offsetWidth; bn.style.animation = '';
-  bn.textContent = G.wave % 10 === 0 ? 'Vague ' + G.wave + ' : un titan arrive' : G.wave % 5 === 0 ? 'Vague ' + G.wave + ' : un colosse arrive' : 'Vague ' + G.wave;
+  const ub = UB[G.wave];
+  bn.textContent = ub ? 'Vague ' + G.wave + ' : ' + TYPES[ub].name + ' arrive' : G.wave % 10 === 0 ? 'Vague ' + G.wave + ' : un titan arrive' : G.wave % 5 === 0 ? 'Vague ' + G.wave + ' : un colosse arrive' : 'Vague ' + G.wave;
   setTimeout(() => bn.classList.add('hide'), 2400);
-  if (G.wave % 5 === 0) spawnZ('boss');
+  if (ub) spawnZ(ub); else if (G.wave % 5 === 0) for (let k = 0; k < (G.wave >= 40 ? 2 : 1); k++) spawnZ('boss');
   if (G.wave % 10 === 0) spawnZ('titan');
-  if (G.wave === 2 || (G.wave >= 4 && G.wave % 3 === 1)) perkChoose();
+  if (G.wave >= 2) perkChoose();
 }
 function spawnZ(type, px, py) {
   const T = TYPES[type], a = rnd(0, 6.283), d = Math.max(W, H) / 2 + 90;
-  const sc = (1 + G.wave * .12) * G.df.hp;
+  const w = G.wave, sc0 = (1 + w * .13 + w * w * .0015) * G.df.hp, sc = T.big ? Math.pow(sc0, .75) : sc0;
   G.z.push({
     t: type, x: px ?? clamp(G.p.x + Math.cos(a) * d, 30, WORLD - 30), y: py ?? clamp(G.p.y + Math.sin(a) * d, 30, WORLD - 30),
-    r: T.r, hp: T.hp * sc, mx: T.hp * sc, sp: T.sp * (1 + Math.min(G.wave, 20) * .015) * rnd(.9, 1.1),
-    pts: T.pts, c: T.c, dk: T.dk, dmg: T.dmg, sh: rnd(1, 2.5), cd: 0, fl: 0, kx: 0, ky: 0, ph: rnd(0, 6)
+    r: T.r, hp: T.hp * sc, mx: T.hp * sc, sp: T.sp * (1 + Math.min(w, 20) * .015 + Math.min(Math.max(w - 20, 0), 60) * .004) * rnd(.9, 1.1),
+    pts: T.pts, c: T.c, dk: T.dk, dmg: Math.min(T.dmg * (1 + Math.min(w, 100) * .008), T.big ? 60 : 70), big: !!T.big, ab: T.ab, mn: T.mn, tm: {}, sh: rnd(1, 2.5), cd: 0, fl: 0, kx: 0, ky: 0, ph: rnd(0, 6)
   });
 }
 function pickType() {
-  const w = G.wave, t = [['walk', Math.max(8, 30 - w)], ['fast', w >= 2 ? 18 : 0], ['bomb', w >= 3 ? 8 : 0], ['tank', w >= 3 ? 6 : 0], ['crawler', w >= 4 ? 8 : 0], ['spit', w >= 4 ? 7 : 0], ['leaper', w >= 4 ? 7 : 0], ['toxic', w >= 5 ? 5 : 0], ['splitter', w >= 6 ? 5 : 0], ['brute', w >= 6 ? 3 + Math.min(w, 20) * .2 : 0], ['scream', w >= 7 ? 3 : 0], ['berserk', w >= 8 ? 5 : 0], ['necro', w >= 9 ? 2.5 : 0]];
+  const w = G.wave, t = [['walk', Math.max(8, 30 - w)], ['fast', w >= 2 ? 18 : 0], ['bomb', w >= 3 ? 8 : 0], ['tank', w >= 3 ? 6 : 0], ['crawler', w >= 4 ? 8 : 0], ['spit', w >= 4 ? 7 : 0], ['leaper', w >= 4 ? 7 : 0], ['toxic', w >= 5 ? 5 : 0], ['splitter', w >= 6 ? 5 : 0], ['brute', w >= 6 ? 3 + Math.min(w, 20) * .2 : 0], ['scream', w >= 7 ? 3 : 0], ['berserk', w >= 8 ? 5 : 0], ['necro', w >= 9 ? 2.5 : 0], ['ghoul', w >= 12 ? 6 : 0], ['archer', w >= 14 ? 5 : 0], ['juggernaut', w >= 15 ? 3 : 0], ['medic', w >= 18 ? 3 : 0], ['phantom', w >= 20 ? 4 : 0]];
   let s = 0; for (const e of t) s += e[1];
   let r = Math.random() * s;
   for (const e of t) { if ((r -= e[1]) < 0) return e[0]; }
@@ -1152,45 +1329,46 @@ function pushOut(o, r) {
   }
 }
 const pick = a => a[Math.floor(Math.random() * a.length)];
-const BP = ['freeze', 'rage', 'ammo', 'ammo', 'ammo', 'ammo', 'ammo', 'ammo', 'heal', 'heal', 'heal', 'shield', 'shield', 'speed', 'speed', 'x2', 'x2', 'nuke', 'magnet', 'magnet'];
+const BP = ['freeze', 'rage', 'ammo', 'ammo', 'ammo', 'ammo', 'heal', 'heal', 'heal', 'shield', 'shield', 'speed', 'speed', 'x2', 'x2', 'nuke', 'magnet', 'magnet'];
 const pickWeapon = rare => { const l = Object.keys(WP).filter(k => WP[k].tier && WP[k].tier <= G.wave).sort((a, b) => WP[a].tier - WP[b].tier); return rare ? pick(l.slice(-3)) : pick(l.slice(0, Math.max(2, Math.ceil(l.length * .7)))); };
 const _old = rare => pick(rare ? ['rifle', 'sniper', 'sniper', 'mini', 'mini', 'shotgun'] : ['smg', 'smg', 'smg', 'shotgun', 'shotgun', 'rifle', 'rifle', 'sniper', 'mini']);
-function hurt(d) { const p = G.p; if (G.tmr.shield > 0) return; p.hp -= d * G.df.dm; p.hit = .25; shake = Math.max(shake, 7); sfx('hurt'); }
+function hurt(d) { const p = G.p; if (G.tmr.shield > 0) return; p.hp -= d * G.df.dm * (1 - .03 * G.pk.ar); p.hit = .25; shake = Math.max(shake, 7); sfx('hurt'); }
 function boom(z) {
   const p = G.p; sfx('boom'); blood(z.x, z.y, '#ff9a3c', 30, 320); shake = Math.max(shake, 12);
   if (Math.hypot(p.x - z.x, p.y - z.y) < 95) hurt(30);
   G.z.forEach(o => { if (o !== z && Math.hypot(o.x - z.x, o.y - z.y) < 95) o.hp -= 8; });
 }
-/* ---------- Munitions cumulées par arme ---------- */
-function lowAmmo() { const g = G; if (g.wp === 'knife') return true; const m = maxAm(g.wp); return m > 0 && g.ammo < m * .3; }
-function bestStock() { const g = G; return Object.keys(g.am).filter(k => g.am[k] > 0 && k !== g.wp).sort((a, b) => (WP[b].tier || 0) - (WP[a].tier || 0))[0] || null; }
-function setWp(id) {
-  const g = G; if (id === g.wp) return;
-  if (g.wp !== 'knife' && g.ammo > 0) g.am[g.wp] = g.ammo;
-  g.wp = id; g.ammo = id === 'knife' ? 0 : (g.am[id] || 0); delete g.am[id];
+/* ---------- Munitions : chaque arme a SA réserve et SON maximum ---------- */
+const MAXAM = { pistol: 90, revolver: 48, smg: 160, dual: 160, shotgun: 32, autoshot: 64, rifle: 120, crossbow: 28, sniper: 20, launcher: 16, plasma: 90, flame: 300, mini: 360, railgun: 12 };
+const PICK_PCT = .5, BOX_PCT = .35;   /* arme ramassée : 50 % du max · caisse MU : 35 % du max de chaque arme */
+const ammoOf = id => id === 'knife' ? Infinity : (G.am[id] || 0);
+function lowAmmo() { return G.wp === 'knife' || ammoOf(G.wp) < maxAm(G.wp) * .25; }
+function addAmmo(id, n) {
+  const g = G; if (id === 'knife' || !MAXAM[id]) return 0;
+  const b = g.am[id] || 0; g.am[id] = Math.min(maxAm(id), b + Math.max(1, Math.ceil(n)));
+  if (g.wp === 'knife' && g.am[id] > 0) setWp(id);
+  return g.am[id] - b;
 }
-function ownedList() {
-  const g = G, ids = Object.keys(g.am).filter(k => g.am[k] > 0 && k !== g.wp); if (g.wp !== 'knife') ids.push(g.wp);
-  ids.sort((a, b) => (WP[a].tier || 0) - (WP[b].tier || 0)); ids.push('knife'); return ids;
-}
+function addAmmoAll(pct) { Object.keys(G.own).forEach(id => addAmmo(id, maxAm(id) * pct)); }
+function setWp(id) { const g = G; g.wp = id; if (id !== 'knife') { g.last = id; g.own[id] = 1; } }
+function ownedList() { const l = Object.keys(G.own).filter(id => ammoOf(id) > 0).sort((a, b) => (WP[a].tier || 0) - (WP[b].tier || 0)); l.push('knife'); return l; }
 function cycleWp(dir) {
   const g = G; if (!g.playing || g.paused) return;
   const l = ownedList(); if (l.length < 2) return;
-  setWp(l[(l.indexOf(g.wp) + dir + l.length) % l.length]); g.p.cd = Math.max(g.p.cd, .15); sfx('pick');
+  setWp(l[(Math.max(0, l.indexOf(g.wp)) + dir + l.length) % l.length]); g.p.cd = Math.max(g.p.cd, .15); sfx('pick');
   g.ft.push({ x: g.p.x, y: g.p.y - 30, t: 1, s: WP[g.wp].name, c: WP[g.wp].col });
 }
 function outOfAmmo() {
-  const g = G; g.ammo = 0; delete g.am[g.wp]; const nx = bestStock();
-  if (nx) { g.wp = nx; g.ammo = g.am[nx]; delete g.am[nx]; } else g.wp = 'knife';
-  g.p.cd = Math.max(g.p.cd, .2);
-  g.ft.push({ x: g.p.x, y: g.p.y - 30, t: 1.4, s: 'Plus de munitions : ' + WP[g.wp].name, c: '#ff4d5e' });
+  const g = G; g.am[g.wp] = 0; const nx = ownedList().filter(id => id !== 'knife').pop(); g.p.cd = Math.max(g.p.cd, .2);
+  if (nx) { setWp(nx); g.ft.push({ x: g.p.x, y: g.p.y - 30, t: 1.4, s: 'Plus de munitions : ' + WP[nx].name, c: '#ff4d5e' }); }
+  else { g.wp = 'knife'; g.ft.push({ x: g.p.x, y: g.p.y - 30, t: 1.4, s: 'Plus de munitions : couteau', c: '#ff4d5e' }); }
 }
 function dropFrom(z) {
-  const low = lowAmmo(), rw = (z.t === 'boss' || z.t === 'titan' ? 1 : z.t === 'brute' ? .75 : z.t === 'tank' ? .55 : .1) + (low ? .06 : 0);
-  if (Math.random() < rw) G.dr.push({ x: z.x + rnd(-10, 10), y: z.y, k: 'w', id: pickWeapon(z.t === 'boss' || z.t === 'titan' || z.t === 'brute'), l: 20 });
-  else if (Math.random() < .3 * (1 + .3 * G.pk.lt)) G.dr.push({ x: z.x, y: z.y, k: 'b', id: low && Math.random() < .5 ? 'ammo' : pick(BP), l: 18 });
-  if (z.t === 'boss' || z.t === 'titan') G.dr.push({ x: z.x + 34, y: z.y, k: 'b', id: 'heal', l: 20 });
-  const pr = z.t === 'boss' || z.t === 'titan' ? 1 : z.t === 'brute' ? .16 : z.t === 'tank' ? .07 : .012;
+  const low = lowAmmo(), rw = (z.big ? 1 : z.t === 'brute' ? .6 : z.t === 'tank' ? .4 : z.t === 'juggernaut' ? .5 : .07) + (low ? .04 : 0);
+  if (Math.random() < rw) G.dr.push({ x: z.x + rnd(-10, 10), y: z.y, k: 'w', id: pickWeapon(z.big || z.t === 'brute'), l: 20 });
+  else if (Math.random() < .22 * (1 + .1 * G.pk.lt)) G.dr.push({ x: z.x, y: z.y, k: 'b', id: low && Math.random() < .4 ? 'ammo' : pick(BP), l: 18 });
+  if (z.big) G.dr.push({ x: z.x + 34, y: z.y, k: 'b', id: 'heal', l: 20 });
+  const pr = z.big ? 1 : z.t === 'brute' ? .16 : z.t === 'tank' ? .07 : .012;
   if (Math.random() < pr) G.dr.push({ x: z.x + rnd(-24, 24), y: z.y + rnd(12, 28), k: 'p', id: pick(Object.keys(PW)), l: 25 });
 }
 function take(d) {
@@ -1201,20 +1379,21 @@ function take(d) {
     g.ft.push({ x: p.x, y: p.y - 22, t: 1.4, s: pw.name + ' ×' + g.pc + ' : clic droit', c: pw.col }); return;
   }
   if (d.k === 'w') {
-    const w = WP[d.id], had = g.wp === d.id ? g.ammo : (g.am[d.id] || 0); setWp(d.id); g.ammo = Math.min(maxAm(d.id) * 2, had + maxAm(d.id)); g.wk[d.id] = (g.wk[d.id] || 0) + 1; sfx('pick');
+    const w = WP[d.id]; const got = addAmmo(d.id, maxAm(d.id) * PICK_PCT * (1 + .12 * wlv(d.id))); setWp(d.id); g.wk[d.id] = (g.wk[d.id] || 0) + 1; sfx('pick');
     if (!cur.dw.includes(d.id)) { cur.dw.push(d.id); g.ft.push({ x: p.x, y: p.y - 44, t: 1.6, s: 'Arme découverte !', c: '#7fb8ff' }); }
-    g.ft.push({ x: p.x, y: p.y - 22, t: 1.2, s: w.name + ' +' + (g.ammo - had), c: w.col });
+    g.ft.push({ x: p.x, y: p.y - 22, t: 1.2, s: w.name + ' +' + got, c: w.col });
   } else {
     const b = BONUS[d.id]; sfx('bonus');
-    if (d.id === 'ammo') { if (g.wp === 'knife') setWp(bestStock() || 'pistol'); g.ammo = Math.min(maxAm(g.wp) * 2, g.ammo + Math.ceil(maxAm(g.wp) * .5)); }
+    if (d.id === 'ammo') addAmmoAll(BOX_PCT);
     else if (d.id === 'heal') p.hp = Math.min(p.mhp, p.hp + 30);
-    else if (d.id === 'nuke') { g.z.forEach(z => { if (z.t === 'boss') z.hp -= 40; else z.hp = 0; }); shake = 20; sfx('boom'); }
-    else g.tmr[d.id] = { shield: 6, speed: 8, x2: 12, freeze: 6, rage: 8, magnet: 12 }[d.id];
+    else if (d.id === 'nuke') { g.z.forEach(z => { if (z.big) z.hp -= Math.max(40, z.mx * .08); else z.hp = 0; }); shake = 20; sfx('boom'); }
+    else g.tmr[d.id] = { shield: 6, speed: 8, x2: 12, freeze: 6, rage: 8, magnet: 12 }[d.id] * (1 + .1 * g.pk.bo);
     g.ft.push({ x: p.x, y: p.y - 22, t: 1.2, s: b.n, c: b.c });
   }
 }
 async function end() {
   if (G.over) return; G.over = true; sfx('over');
+  for (let i = 0; i < 40 && G.saving; i++) await new Promise(r => setTimeout(r, 50));
   G.playing = false; hud(false); show('over');
   $('fs').textContent = G.score; $('fd').textContent = 'Enregistrement du score…'; $('fc').textContent = ''; $('ft').replaceChildren();
   let u, rec = false; try { u = (await getUser(ckey)) || cur; } catch (e) { $('fd').textContent = 'Hors ligne : score non enregistré. Vérifiez votre connexion.'; return; } if ((u.rv || 0) !== (cur.rv || 0)) cur = u;
@@ -1224,7 +1403,7 @@ async function end() {
   u.av = u.av || cur.av; u.col = u.col || cur.col;
   u.ti = cur.ti || ''; u.tu = [...new Set([...(u.tu || []), ...(cur.tu || [])])]; u.bc = Math.max(u.bc || 0, G.bc || 0);
   u.sk = cur.sk; u.sc = cur.sc; u.os = [...new Set([...(u.os || []), ...(cur.os || [])])]; u.dp = [...new Set([...(u.dp || []), ...(cur.dp || [])])];
-  const gn = cashParts(); u.money = (u.money || 0) + gn.total; u.earned = (u.earned || 0) + gn.total; u.pk = u.pk || {}; for (const k in G.pu) u.pk[k] = (u.pk[k] || 0) + G.pu[k]; norm(u);
+  const gn = cashParts(), rest = G.cash - G.cs; u.money = (u.money || 0) + rest; u.earned = (u.earned || 0) + rest; u.pk = u.pk || {}; for (const k in G.pu) u.pk[k] = (u.pk[k] || 0) + G.pu[k]; norm(u);
   u.dw = [...new Set([...(u.dw || []), ...cur.dw])]; u.dz = [...new Set([...(u.dz || []), ...cur.dz])];
   if (G.score > (u.best || 0)) { u.best = G.score; rec = true; }
   const nt = checkTitles(u);
@@ -1245,11 +1424,13 @@ function update(dt) {
   const kl = Math.hypot(x, y); if (kl > 1) { x /= kl; y /= kl; }
   if (joy.on) { const dx = joy.x - joy.ox, dy = joy.y - joy.oy, d = Math.hypot(dx, dy); if (d > 8) { const m = Math.min(d, 60) / 60; x = dx / d * m; y = dy / d * m; } }
   if (g.dc > 0) g.dc -= dt;
-  if (K.s && g.dc <= 0 && (x || y)) { p.dt = .15; g.dc = 1.6 * (1 - .2 * g.pk.dh); sfx('dash'); }
+  if (K.s && g.dc <= 0 && (x || y)) { p.dt = .15; g.dc = 1.6 * (1 - .05 * g.pk.dh); sfx('dash'); }
   p.dt = Math.max(0, p.dt - dt);
-  const spd = (g.tmr.speed > 0 ? 300 : 215) * (p.dt > 0 ? 3.2 : 1) * (1 + .1 * g.pk.sp);
+  const spd = (g.tmr.speed > 0 ? 300 : 215) * (p.dt > 0 ? 3.2 : 1) * (1 + .04 * g.pk.sp);
   p.x = clamp(p.x + x * spd * dt, p.r, WORLD - p.r); p.y = clamp(p.y + y * spd * dt, p.r, WORLD - p.r); pushOut(p, p.r); g.dist += Math.hypot(p.x - g.lx, p.y - g.ly) / 40; g.lx = p.x; g.ly = p.y;
-  p.hit = Math.max(0, p.hit - dt); p.cd -= dt; if (g.pk.rg) p.hp = Math.min(p.mhp, p.hp + g.pk.rg * dt); p.sl = Math.max(0, (p.sl || 0) - dt);
+  const dd = Math.floor(g.dist / 10) - g.dpd; if (dd > 0) { g.dpd += dd; gainCash(dd, 'cd'); }
+  g.sv += dt; if (g.sv > 8) { g.sv = 0; saveCash(); }
+  p.hit = Math.max(0, p.hit - dt); p.cd -= dt; if (g.pk.rg) p.hp = Math.min(p.mhp, p.hp + .3 * g.pk.rg * dt); p.sl = Math.max(0, (p.sl || 0) - dt);
   // visée à la souris, tir au clic (tactile : automatique)
   const w = WP[g.wp]; let want = false;
   if (touch) {
@@ -1258,15 +1439,15 @@ function update(dt) {
     if (best) { p.ang = Math.atan2(best.y - p.y, best.x - p.x); want = true; } else if (x || y) p.ang = Math.atan2(y, x);
   } else { p.ang = Math.atan2(my - (p.y - cy), mx - (p.x - cx)); want = w.auto ? down : edge > 0; }
   if (want && p.cd <= 0) {
-    const lv = wlv(g.wp), dm = (1 + .15 * lv) * (1 + .15 * g.pk.dm);
-    p.cd = w.rate * (1 - .05 * lv) * Math.pow(.88, g.pk.rt) * (g.tmr.rage > 0 ? .5 : 1); edge = 0; g.shots++; shotSfx(g.wp); g.flash = .06; if (g.wp === 'knife') { p.sd = -(p.sd || 1); p.sl = .24; }
+    const lv = wlv(g.wp), dm = (1 + .15 * lv) * (1 + .06 * g.pk.dm);
+    p.cd = w.rate * (1 - .05 * lv) * Math.pow(.96, g.pk.rt) * (g.tmr.rage > 0 ? .5 : 1); edge = 0; g.shots++; shotSfx(g.wp); g.flash = .06; if (g.wp === 'knife') { p.sd = -(p.sd || 1); p.sl = .24; }
     for (let i = 0; i < w.n; i++) {
       const a = p.ang + rnd(-w.sp, w.sp) / 2;
-      g.b.push({ x: p.x + Math.cos(a) * 24, y: p.y + Math.sin(a) * 24, vx: Math.cos(a) * w.v, vy: Math.sin(a) * w.v, l: w.life, d: w.dmg * dm, pl: w.pl + (lv >= 3 ? 1 : 0) + g.pk.pl, ex: w.ex ? { r: w.ex.r, d: w.ex.d * dm } : null, h: [], c: w.col });
+      g.b.push({ x: p.x + Math.cos(a) * 24, y: p.y + Math.sin(a) * 24, vx: Math.cos(a) * w.v, vy: Math.sin(a) * w.v, l: w.life, d: w.dmg * dm * (Math.random() < .04 * g.pk.cr ? 2 : 1), pl: w.pl + (lv >= 3 ? 1 : 0) + g.pk.pl, ex: w.ex ? { r: w.ex.r, d: w.ex.d * dm } : null, h: [], c: w.col });
     }
     if (g.wp !== 'knife') blood(p.x + Math.cos(p.ang) * 28, p.y + Math.sin(p.ang) * 28, '#ffd27a', 3, 120);
     if (w.n > 3 || w.dmg > 5) shake = Math.max(shake, 4);
-    if (g.wp !== 'knife' && --g.ammo <= 0) outOfAmmo();
+    if (g.wp !== 'knife' && --g.am[g.wp] <= 0) outOfAmmo();
   }
   for (let i = g.b.length - 1; i >= 0; i--) {
     const b = g.b[i]; b.x += b.vx * dt; b.y += b.vy * dt; b.l -= dt; let dead = b.l <= 0;
@@ -1282,22 +1463,22 @@ function update(dt) {
     if (dead) { if (b.ex) bexplode(b); g.b.splice(i, 1); }
   }
   powerTick(dt);
-  if (g.spawnLeft > 0 && g.z.length < 70) {
+  if (g.spawnLeft > 0 && g.z.length < zcap()) {
     g.spawnT -= dt;
-    if (g.spawnT <= 0) { spawnZ(pickType()); g.spawnLeft--; g.spawnT = Math.max(.18, 1 - g.wave * .05); }
+    if (g.spawnT <= 0) { spawnZ(pickType()); g.spawnLeft--; g.spawnT = Math.max(.1, 1 - g.wave * .05); }
   }
   const scr = g.z.filter(q => q.t === 'scream');
   for (let i = g.z.length - 1; i >= 0; i--) {
     const z = g.z[i];
     if (z.hp <= 0) {
       g.combo++; if (g.combo > g.bc) g.bc = g.combo; g.ct = 2.5; g.zk[z.t] = (g.zk[z.t] || 0) + 1; sfx('kill');
-      const pts = Math.max(1, Math.round((z.pts + Math.floor(g.combo / 5)) * (g.tmr.x2 > 0 ? 2 : 1) * g.df.sc));
-      g.score += pts; g.kills++; g.cz += z.pts; if (g.combo >= 5) g.cc += Math.floor(g.combo / 5); blood(z.x, z.y, z.c, z.t === 'boss' ? 50 : 16, 220); gore(z.x, z.y, Math.atan2(z.ky || 0, z.kx || 1), z.t === 'boss' ? 46 : 18, 360); splat(z.x, z.y, z.r); splat(z.x, z.y, z.r);
-      g.ft.push({ x: z.x, y: z.y - z.r, t: 1, s: '+' + pts, c: z.t === 'boss' ? '#ff5a5a' : '#ffb347' });
+      const pts = Math.max(1, Math.round((z.pts + Math.floor(g.combo / 5)) * (g.tmr.x2 > 0 ? 2 : 1) * g.df.sc * (1 + .05 * g.pk.pt)));
+      g.score += pts; g.kills++; if (g.pk.vm) p.hp = Math.min(p.mhp, p.hp + .25 * g.pk.vm); const cg = gainCash(z.pts, 'cz') + (g.combo >= 5 ? gainCash(Math.floor(g.combo / 5), 'cc') : 0); blood(z.x, z.y, z.c, z.big ? 50 : 16, 220); gore(z.x, z.y, Math.atan2(z.ky || 0, z.kx || 1), z.big ? 46 : 18, 360); splat(z.x, z.y, z.r); splat(z.x, z.y, z.r);
+      g.ft.push({ x: z.x, y: z.y - z.r, t: 1, s: '+' + pts + (cg ? '  +' + cg + ' $' : ''), c: z.big ? '#ff5a5a' : '#ffb347' });
       if (!cur.dz.includes(z.t)) { cur.dz.push(z.t); g.ft.push({ x: z.x, y: z.y - z.r - 24, t: 1.6, s: 'Zombie découvert !', c: '#7fb8ff' }); }
       if (z.t === 'bomb') boom(z);
       if (z.t === 'splitter') for (let k = 0; k < 2; k++) spawnZ('crawler', z.x + rnd(-14, 14), z.y + rnd(-14, 14));
-      dropFrom(z); if (z.t === 'boss') shake = 14; g.z.splice(i, 1); continue;
+      dropFrom(z); if (z.big) shake = 14; g.z.splice(i, 1); continue;
     }
     const dx = p.x - z.x, dy = p.y - z.y, d = Math.hypot(dx, dy) || 1; let mv = 1;
     if (z.t === 'spit') {
@@ -1305,14 +1486,21 @@ function update(dt) {
       z.sh -= dt;
       if (z.sh <= 0 && d < 520) { z.sh = 2.2; const a = Math.atan2(dy, dx); g.eb.push({ x: z.x, y: z.y, vx: Math.cos(a) * 250, vy: Math.sin(a) * 250, l: 3 }); }
     }
+    if (z.t === 'archer') { if (d < 330) mv = -.6; else if (d < 420) mv = 0; z.sh -= dt; if (z.sh <= 0 && d < 650) { z.sh = 1.5; const a = Math.atan2(dy, dx); g.eb.push({ x: z.x, y: z.y, vx: Math.cos(a) * 400, vy: Math.sin(a) * 400, l: 2.2, d: 14 }); } }
     if (z.t === 'necro') {
       if (d < 260) mv = -.6; else if (d < 340) mv = 0;
-      z.sh -= dt; if (z.sh <= 0 && g.z.length < 70) { z.sh = 5; sfx('wave'); for (let k = 0; k < 2; k++) spawnZ('walk', z.x + rnd(-30, 30), z.y + rnd(-30, 30)); }
+      z.sh -= dt; if (z.sh <= 0 && g.z.length < zcap()) { z.sh = 5; sfx('wave'); for (let k = 0; k < 2; k++) spawnZ('walk', z.x + rnd(-30, 30), z.y + rnd(-30, 30)); }
     } else if (z.t === 'leaper') {
       z.sh -= dt; if (z.sh <= 0 && d > 120 && d < 430) { z.sh = rnd(2, 3.2); z.kx += dx / d * 1300; z.ky += dy / d * 1300; }
+    } else if (z.t === 'phantom') {
+      z.sh -= dt; if (z.sh <= 0 && d > 200) { z.sh = rnd(3, 4.5); const a = rnd(0, 6.283); z.x = clamp(p.x + Math.cos(a) * 150, 30, WORLD - 30); z.y = clamp(p.y + Math.sin(a) * 150, 30, WORLD - 30); g.fx.push({ k: 'ring', x: z.x, y: z.y, t: .35, m: .35, r: 50, c: z.c }); }
+    } else if (z.t === 'medic') {
+      if (d < 250) mv = -.5; else if (d < 330) mv = 0;
+      for (const o of g.z) if (o !== z && o.hp < o.mx && Math.hypot(o.x - z.x, o.y - z.y) < 230) o.hp = Math.min(o.mx, o.hp + 4 * dt);
     } else if (z.t === 'titan') {
       z.sh -= dt; if (z.sh <= 0 && d < 750) { z.sh = 3; for (let k = 0; k < 10; k++) { const a = g.t + k * .628; g.eb.push({ x: z.x, y: z.y, vx: Math.cos(a) * 230, vy: Math.sin(a) * 230, l: 3.2 }); } }
     }
+    if (z.ab) bossAI(z, d, dx, dy, dt);
     let boost = 1; for (const s of scr) if (s !== z && Math.hypot(s.x - z.x, s.y - z.y) < 260) { boost = 1.35; break; }
     let vx = dx / d * mv, vy = dy / d * mv;
     for (const s of obst) {
@@ -1333,7 +1521,7 @@ function update(dt) {
   }
   for (let i = g.eb.length - 1; i >= 0; i--) {
     const e = g.eb[i]; e.x += e.vx * dt; e.y += e.vy * dt; e.l -= dt;
-    if (Math.hypot(e.x - p.x, e.y - p.y) < p.r + 6) { hurt(10); e.l = 0; }
+    if (Math.hypot(e.x - p.x, e.y - p.y) < p.r + 6) { hurt(e.d || 10); e.l = 0; }
     if (e.l <= 0) g.eb.splice(i, 1);
   }
   for (let i = g.dr.length - 1; i >= 0; i--) {
@@ -1348,10 +1536,9 @@ function update(dt) {
   for (let i = g.sp.length - 1; i >= 0; i--) { g.sp[i].l -= dt; if (g.sp[i].l <= 0) g.sp.splice(i, 1); }
   if (g.spawnLeft === 0 && g.z.length === 0 && g.brk <= 0) g.brk = 2.6;
   if (g.brk > 0) { g.brk -= dt; if (g.brk <= 0) nextWave(); }
-  $('sc').textContent = g.score; $('kl').textContent = g.kills; $('rem').textContent = g.spawnLeft + g.z.length;
+  $('cash').textContent = fmt((cur.money || 0) + g.cash - g.cs); $('sc').textContent = g.score; $('kl').textContent = g.kills; $('rem').textContent = g.spawnLeft + g.z.length;
   $('wv').textContent = 'Vague ' + g.wave; $('hp').style.width = Math.max(0, p.hp / p.mhp * 100) + '%'; $('hpn').textContent = Math.max(0, Math.ceil(p.hp)) + ' / ' + p.mhp;
-  const oth = Object.keys(g.am).filter(k => g.am[k] > 0).sort((a, b) => (WP[a].tier || 0) - (WP[b].tier || 0)).map(k => WP[k].ab + ' ' + g.am[k]).join(' · ');
-  $('wpn').textContent = w.name + (wlv(g.wp) ? ' Niv.' + wlv(g.wp) : '') + ' · ' + (g.wp === 'knife' ? '∞' : g.ammo) + (oth ? '   [' + oth + ']' : ''); $('cash').textContent = cashParts().total; pwUI();
+  $('wpn').textContent = w.name + (wlv(g.wp) ? ' Niv.' + wlv(g.wp) : '') + (g.wp === 'knife' ? ' · Sans munitions (couteau)' : ' · Munitions ' + g.am[g.wp] + ' / ' + maxAm(g.wp));
   const bt = []; for (const k of ['shield', 'speed', 'x2', 'freeze', 'rage', 'magnet']) if (g.tmr[k] > 0) bt.push(BONUS[k].n + ' ' + Math.ceil(g.tmr[k]) + ' s');
   if (g.combo >= 3) bt.push('Combo ×' + g.combo); bt.push(g.dc > 0 ? 'Esquive ' + g.dc.toFixed(1) + ' s' : 'Esquive prête');
   if (p.hp < 30 && g.t - (g.hb || 0) > .9) { g.hb = g.t; tone(60, .14, 'sine', .3, .5); tone(55, .14, 'sine', .25, .5, .18); }
@@ -1391,7 +1578,7 @@ function drawZ(z, cx, cy) {
   const x = z.x - cx, y = z.y - cy; if (x < -90 || y < -90 || x > W + 90 || y > H + 90) return;
   const a = Math.atan2(G.p.y - z.y, G.p.x - z.x), sw = Math.sin(G.t * 8 + z.ph) * z.r * .18;
   ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(x + 4, y + 6, z.r, z.r * .8, 0, 0, 7); ctx.fill();
-  ctx.save(); ctx.translate(x, y); ctx.rotate(a); zArt(ctx, z.r, z, z.t, z.fl > 0, sw); ctx.restore(); ctx.shadowBlur = 0;
+  ctx.save(); if (z.t === 'phantom') ctx.globalAlpha = .55 + Math.sin(G.t * 5 + z.ph) * .2; ctx.translate(x, y); ctx.rotate(a); zArt(ctx, z.r, z, z.t, z.fl > 0, sw); ctx.restore(); ctx.shadowBlur = 0;
   if (z.t === 'scream') { ctx.strokeStyle = 'rgba(217,160,232,.18)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, 260, 0, 7); ctx.stroke(); }
   if (G.tmr.freeze > 0) { ctx.fillStyle = 'rgba(155,231,255,.35)'; ctx.beginPath(); ctx.arc(x, y, z.r, 0, 7); ctx.fill(); }
   if (z.mx > 8 && z.hp < z.mx) {
@@ -1552,7 +1739,7 @@ function bArt(x, id, c) {
 }
 function zArt(x, r, o, t, fl, sw) {
   x.fillStyle = o.dk; x.beginPath(); x.arc(r * .95, -r * .68 + sw, r * .3, 0, 7); x.arc(r * .95, r * .68 - sw, r * .3, 0, 7); x.fill();
-  if (t === 'boss' || t === 'titan') for (let i = 0; i < 10; i++) { const a = i * .628; x.beginPath(); x.moveTo(Math.cos(a - .15) * r * .95, Math.sin(a - .15) * r * .95); x.lineTo(Math.cos(a) * r * 1.3, Math.sin(a) * r * 1.3); x.lineTo(Math.cos(a + .15) * r * .95, Math.sin(a + .15) * r * .95); x.fill(); }
+  if (o.big) for (let i = 0; i < 10; i++) { const a = i * .628; x.beginPath(); x.moveTo(Math.cos(a - .15) * r * .95, Math.sin(a - .15) * r * .95); x.lineTo(Math.cos(a) * r * 1.3, Math.sin(a) * r * 1.3); x.lineTo(Math.cos(a + .15) * r * .95, Math.sin(a + .15) * r * .95); x.fill(); }
   if (t === 'tank') { x.beginPath(); x.arc(0, -r * .85, r * .45, 0, 7); x.arc(0, r * .85, r * .45, 0, 7); x.fill(); }
   x.fillStyle = fl ? '#fff' : o.c; x.strokeStyle = o.dk; x.lineWidth = Math.max(2, r * .12); x.beginPath(); x.arc(0, 0, r, 0, 7); x.fill(); x.stroke();
   x.fillStyle = o.dk;
@@ -1566,11 +1753,12 @@ function zArt(x, r, o, t, fl, sw) {
   if (t === 'leaper') { x.fillStyle = o.dk; x.fillRect(-r * .6, -r * .5, r * .22, r); x.fillRect(-r * .25, -r * .6, r * .22, r * 1.2); }
   if (t === 'scream') { x.strokeStyle = o.dk; x.lineWidth = 2.5; for (const q of [.55, .85]) { x.beginPath(); x.arc(r * .3, 0, r * q, -.7, .7); x.stroke(); } x.fillStyle = '#26121a'; x.beginPath(); x.arc(r * .75, 0, r * .2, 0, 7); x.fill(); }
   if (t === 'necro') { x.fillStyle = '#121a3a'; x.beginPath(); x.arc(0, 0, r * .95, 1.8, 4.5); x.fill(); x.fillStyle = '#9be7ff'; x.beginPath(); x.arc(r * .4, 0, r * .16, 0, 7); x.fill(); }
+  if (t === 'medic') { x.fillStyle = '#fff'; x.fillRect(-r * .5, -r * .12, r * .6, r * .24); x.fillRect(-r * .3, -r * .32, r * .24, r * .64); }
   x.fillStyle = '#ff3b3b'; x.beginPath(); x.arc(r * .45, -r * .33, r * .15, 0, 7); x.arc(r * .45, r * .33, r * .15, 0, 7); x.fill();
 }
 function minimap() {
   const S = 130, x0 = W - S - 16, y0 = H - S - 16, k = S / WORLD; ctx.fillStyle = 'rgba(8,13,25,.6)'; ctx.fillRect(x0, y0, S, S); ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1; ctx.strokeRect(x0, y0, S, S);
-  G.z.forEach(z => { ctx.fillStyle = z.t === 'boss' ? '#ff5a5a' : z.c; ctx.fillRect(x0 + z.x * k - 1, y0 + z.y * k - 1, 3, 3); });
+  G.z.forEach(z => { ctx.fillStyle = z.big ? '#ff5a5a' : z.c; ctx.fillRect(x0 + z.x * k - 1, y0 + z.y * k - 1, 3, 3); });
   G.dr.forEach(d => { ctx.fillStyle = '#ffd24a'; ctx.fillRect(x0 + d.x * k - 2, y0 + d.y * k - 2, 4, 4); });
   ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x0 + G.p.x * k, y0 + G.p.y * k, 3, 0, 7); ctx.fill();
 }
@@ -1583,5 +1771,4 @@ function loop(now) {
   render(); requestAnimationFrame(loop);
 }
 showMenu(); requestAnimationFrame(loop); sndLbl(); initOnline().then(() => { renderLB($('lb')); autoLogin(); });
-
 </script></body></html>
