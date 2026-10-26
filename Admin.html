@@ -344,12 +344,23 @@ function nameBlock(u, extra) {
 function rowLive(u) {
   const k = keyOf(u.name), r = mk('div', 'urow');
   const bi = mk('button', 'mini', open.has(k) ? 'Masquer' : 'Détails'); bi.onclick = () => { open.has(k) ? open.delete(k) : open.add(k); draw(true); };
+  const pwBtn = mk('button', 'mini', 'Récupérer / MDP');
+  pwBtn.onclick = async () => {
+    const newPw = prompt('Nouveau mot de passe temporaire pour ' + u.name + ' :');
+    if (!newPw || newPw.length < 6) { alert('Minimum 6 caractères.'); return; }
+    try {
+      const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('dn1|' + k + '|' + newPw));
+      const h = 's:' + [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+      await edit(k, t => { t.h = h; });
+      alert('Mot de passe mis à jour avec succès !\nNouveau MDP : ' + newPw);
+    } catch (e) { alert('Erreur lors du changement.'); }
+  };
   const bc = mk('button', 'mini', u.cert ? 'Retirer OK' : 'Certifier'); bc.onclick = () => edit(k, t => { t.cert = !t.cert; });
   const mi = mk('input', 'num'); mi.type = 'number'; mi.placeholder = '± argent';
   const mb = mk('button', 'mini', 'Ajouter / retirer'); mb.onclick = () => { const v = Math.max(-1e7, Math.min(1e7, Math.round(Number(mi.value) || 0))); if (v) edit(k, t => { t.money = Math.min(1e9, Math.max(0, (t.money || 0) + v)); }); };
   const rs = confirmBtn('Réinitialiser', () => edit(k, t => { Object.assign(t, fresh(t)); delete t.av; delete t.col; delete t.bio; }));
   const del = confirmBtn('Supprimer', () => edit(k, t => { t.del = Date.now(); t.rv = (t.rv || 0) + 1; }), 'danger');
-  r.append(avEl(u, 38), nameBlock(u), bi, bc, mi, mb, rs, del);
+  r.append(avEl(u, 38), nameBlock(u), bi, pwBtn, bc, mi, mb, rs, del);
   if (open.has(k)) {
     const d = mk('div', 'det'), sum = o => Object.values(o || {}).reduce((a, b) => a + b, 0);
     [['Parties', u.games || 0], ['Zombies tués', u.kills || 0], ['Meilleure vague', u.bw || 0], ['Points (total)', u.total || 0], ['Argent gagné', fmt(u.earned) + ' $'], ['Armes trouvées', (u.dw || []).length], ['Pouvoirs trouvés', (u.dp || []).length], ['Pouvoirs utilisés', sum(u.pk)], ['Vues du profil', (u.vw || []).length], ['IP secrète', u.ip ? '••••••••••' : '—']]
