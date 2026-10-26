@@ -175,6 +175,44 @@ label.chk{display:flex;align-items:center;gap:8px;margin-top:-4px}label.chk inpu
 .det{flex-basis:100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:4px}
 .det .tile b{font-size:22px}
 .back{display:inline-block;margin-top:14px;color:var(--mute);font-size:14px}
+
+/* v9 : staff, bugs, idées */
+textarea{display:block;width:100%;min-height:96px;resize:vertical;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:#0e1a2e;color:var(--txt);font:inherit;font-size:16px;outline:none;-webkit-user-select:text;user-select:text}
+textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(255,122,47,.25)}
+.prof .note{text-align:center;max-width:320px;margin-bottom:6px}
+.ul h2{margin:6px 0 0;font-size:22px}
+.post{display:flex;flex-direction:column;gap:7px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#0e1a2e}
+.post .ph2{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.post .ph2 small{color:var(--mute);font-size:12px}
+.pt{white-space:pre-wrap;word-break:break-word;line-height:1.45;font-size:15px;color:var(--txt)}
+.pa{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.pa .mini,.rbox .mini{margin-top:0}
+.rps{display:flex;flex-direction:column;gap:8px;padding-left:10px;border-left:2px solid var(--line)}
+.rp{font-size:14px;line-height:1.4}.rp small{color:var(--mute);font-size:12px}.rp .pt{font-size:14px}
+.rbox{display:flex;gap:8px;align-items:center}.rbox input{margin:0;padding:8px 10px;font-size:14px}
+.stf{background:var(--acc);color:#1a0d02;border-radius:6px;padding:1px 7px;font:400 11px Impact,sans-serif;letter-spacing:.05em}
+.chip{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;border:1px solid var(--line);color:var(--mute)}
+.chip.ok{color:var(--ok);border-color:var(--ok)}.chip.wip{color:var(--acc2);border-color:var(--acc2)}.chip.new{color:var(--bad);border-color:var(--bad)}
+.mini.lk.on{background:var(--acc);color:#1a0d02;border-color:var(--acc)}
+.tabs{flex-wrap:wrap}.tabs button{min-width:84px;font-size:17px}
+
+/* v10 : messages, bugs et idées dans l'admin */
+.fbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:2px}
+.fbar .mini{margin-top:0}
+.mini.on{background:var(--acc);color:#1a0d02;border-color:var(--acc)}
+.mini.done.on{background:var(--ok);border-color:var(--ok);color:#06251a}
+.post.unread{border-color:var(--bad);box-shadow:0 0 0 1px rgba(255,77,94,.25)}
+.pa small{color:var(--mute);font-size:12px}
+.ferr{color:var(--bad);font-size:14px;margin:0}
+.rph{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:2px}
+.rp{display:flex;flex-direction:column;gap:3px}.rp .mini{align-self:flex-start}
+.rp.adm{border-left:3px solid var(--bad);margin-left:-12px;padding:6px 8px 6px 9px;background:rgba(255,77,94,.08);border-radius:0 10px 10px 0}
+.rp.adm .admn{color:var(--bad);font:400 15px Impact,sans-serif;letter-spacing:.04em}
+.shield{width:16px;height:16px;flex:none;color:var(--bad)}
+.admtag{display:inline-flex;align-items:center;gap:4px;padding:1px 8px 1px 5px;border-radius:999px;background:linear-gradient(90deg,#c4202f,#ff4d5e);color:#fff;font:400 11px Impact,sans-serif;letter-spacing:.06em;box-shadow:0 0 8px rgba(255,77,94,.45)}
+.admtag .shield{color:#fff;width:13px;height:13px}
+.rbox{align-items:flex-end}
+.rbox textarea{min-height:42px;height:42px;margin:0;padding:8px 10px;font-size:14px}
+.rbox .mini.send{background:var(--bad);border-color:var(--bad);color:#fff}
+.rbox .mini.send:hover:not(:disabled){background:#ff6a78}
 </style></head><body>
 <section id="gate" class="screen">
   <div class="card auth">
@@ -188,9 +226,9 @@ label.chk{display:flex;align-items:center;gap:8px;margin-top:-4px}label.chk inpu
 </section>
 <section id="panel" class="screen hide">
   <div class="card adm">
-    <div class="bar"><h1>Administration</h1><button id="out" class="btn ghost">Se déconnecter</button></div>
+    <div class="bar"><h1>Administration</h1><span style="display:flex;gap:8px"><button id="rf" class="btn ghost">Actualiser</button><button id="out" class="btn ghost">Se déconnecter</button></span></div>
     <small class="net" id="net"></small>
-    <div class="tabs"><button id="tA" class="on">Comptes</button><button id="tT">Corbeille</button></div>
+    <div class="tabs"><button id="tA" class="on">Comptes</button><button id="tT">Corbeille</button><button id="tM">Messages</button><button id="tB">Bugs</button><button id="tI">Idées</button></div>
     <input id="q" placeholder="Rechercher un pseudo…" autocomplete="off">
     <p id="cnt" class="hint"></p>
     <div id="list" class="ul"></div>
@@ -281,6 +319,28 @@ async function topList(n = 10) {
 }
 
 const keyOf = n => [...n.toLowerCase()].map(c => /[a-z0-9]/.test(c) ? c : '_' + c.charCodeAt(0).toString(36)).join('');
+/* ---------- Données du jeu : messages au staff, bugs, idées ----------
+   Même structure que le jeu :  staffmsg/{clé joueur}/{id}   posts/bug/{id}   posts/idea/{id}
+   Hors Firebase : copie locale (localStorage 'dn_feed_v1'), comme dans le jeu. */
+const LF = 'dn_feed_v1';
+const fload = () => { try { return JSON.parse(localStorage.getItem(LF)) || {}; } catch (e) { return {}; } };
+const fsave = d => { try { localStorage.setItem(LF, JSON.stringify(d)); } catch (e) {} };
+const segs = p => p.split('/').filter(Boolean);
+const newId = () => String(Date.now()).padStart(13, '0') + '_' + Math.random().toString(36).slice(2, 6);
+async function dget(p) {
+  if (MODE === 'firebase') return await fb('GET', p);
+  let n = fload(); for (const k of segs(p)) { if (n == null || typeof n !== 'object') return null; n = n[k]; } return n === undefined ? null : n;
+}
+async function dput(p, v) {
+  if (MODE === 'firebase') { await fb('PUT', p, v); return; }
+  const d = fload(), a = segs(p), last = a.pop(); let n = d;
+  for (const k of a) { if (!n[k] || typeof n[k] !== 'object') n[k] = {}; n = n[k]; } n[last] = v; fsave(d);
+}
+async function ddel(p) {
+  if (MODE === 'firebase') { await fb('DELETE', p); return; }
+  const d = fload(), a = segs(p), last = a.pop(); let n = d;
+  for (const k of a) { if (!n || typeof n[k] !== 'object') return; n = n[k]; } if (n) delete n[last]; fsave(d);
+}
 const everyone = () => allUsers(true);
 
 /* ---------- Petits outils ---------- */
@@ -312,13 +372,122 @@ function tryCode() {
 }
 $('go').onclick = tryCode; $('code').onkeydown = e => { if (e.key === 'Enter') tryCode(); };
 $('out').onclick = () => { sessionStorage.removeItem('dn_admin'); $('panel').classList.add('hide'); $('gate').classList.remove('hide'); $('code').focus(); };
-$('tA').onclick = () => { tab = 'A'; draw(); }; $('tT').onclick = () => { tab = 'T'; draw(); };
+['A', 'T', 'M', 'B', 'I'].forEach(k => $('t' + k).onclick = () => { tab = k; draw(true); }); $('rf').onclick = () => draw();
 $('q').oninput = () => draw(true);
 
+/* ---------- Messages, bugs et idées ---------- */
+const NS = 'http://www.w3.org/2000/svg', ADMIN = 'Admin', WIP = 'En cours', MAXTXT = 500;
+const fdate = t => t ? new Date(t).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+const KIND = { bug: { one: 'bug', many: 'bugs', done: 'Résolu' }, idea: { one: 'idée', many: 'idées', done: 'Pris en compte' } };
+const TABKIND = { B: 'bug', I: 'idea' };
+const FILTERS = {
+  M: [['all', 'Tous'], ['new', 'Non lus'], ['read', 'Lus']],
+  B: [['all', 'Tous'], ['open', 'À traiter'], ['done', 'Résolus']],
+  I: [['all', 'Toutes'], ['open', 'À traiter'], ['done', 'Prises en compte']]
+};
+const isDone = p => p.status === KIND[p.type].done;
+const rowsOf = o => Object.entries(o || {}).filter(([, v]) => v && typeof v === 'object' && v.txt && !v.del);
+const byId = (a, b) => a[0] < b[0] ? -1 : 1;
+let FLT = { M: 'all', B: 'all', I: 'all' }, FEEDERR = '', DRAFT = {};
+
+async function loadFeed() {
+  const [sm, ps] = await Promise.all([dget('staffmsg'), dget('posts')]);
+  MSG = []; POSTS = [];
+  Object.entries(sm || {}).forEach(([uk, o]) => rowsOf(o).forEach(([id, m]) => MSG.push({ ...m, id, uk, path: 'staffmsg/' + uk + '/' + id })));
+  ['bug', 'idea'].forEach(t => rowsOf((ps || {})[t]).forEach(([id, p]) => POSTS.push({ ...p, id, type: t, path: 'posts/' + t + '/' + id })));
+  MSG.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+}
+function tabsUI() {
+  ['A', 'T', 'M', 'B', 'I'].forEach(k => $('t' + k).classList.toggle('on', tab === k));
+  const un = MSG.filter(m => !m.read).length, nb = POSTS.filter(p => p.type === 'bug' && !isDone(p)).length, ni = POSTS.filter(p => p.type === 'idea' && !isDone(p)).length;
+  $('tM').textContent = 'Messages' + (un ? ' (' + un + ')' : ''); $('tB').textContent = 'Bugs' + (nb ? ' (' + nb + ')' : ''); $('tI').textContent = 'Idées' + (ni ? ' (' + ni + ')' : '');
+  $('q').placeholder = tab === 'M' ? 'Rechercher un joueur ou un mot…' : tab === 'B' || tab === 'I' ? 'Rechercher un auteur ou un mot…' : 'Rechercher un pseudo…';
+}
+function shield() {
+  const s = document.createElementNS(NS, 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('class', 'shield'); s.setAttribute('aria-hidden', 'true');
+  const a = document.createElementNS(NS, 'path'); a.setAttribute('d', 'M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3z'); a.setAttribute('fill', 'currentColor');
+  const b = document.createElementNS(NS, 'path'); b.setAttribute('d', 'M8.3 12.2l2.6 2.6 4.8-5'); b.setAttribute('fill', 'none'); b.setAttribute('stroke', '#16233a'); b.setAttribute('stroke-width', '2.4'); b.setAttribute('stroke-linecap', 'round'); b.setAttribute('stroke-linejoin', 'round');
+  s.append(a, b); return s;
+}
+function admTag() { const t = mk('span', 'admtag'); t.title = 'Administrateur'; t.append(shield(), 'ADMIN'); return t; }
+/* une réponse : en rouge avec le symbole admin si elle vient du staff */
+function rpEl(r, del) {
+  const adm = !!(r.adm || r.st), e = mk('div', 'rp' + (adm ? ' adm' : '')), h = mk('div', 'rph'), n = mk('span', 'nm');
+  if (adm) { n.append(mk('b', 'admn', ADMIN)); h.append(n, admTag()); }
+  else { n.append(mk('b', '', r.by || 'Joueur')); if (r.c) n.append(' ', certEl()); h.append(n); }
+  h.append(mk('small', '', fdate(r.ts)));
+  e.append(h, mk('div', 'pt', r.txt)); if (del) e.append(del); return e;
+}
+/* exécute une action, puis recharge sans perdre la position de défilement ni les brouillons */
+async function act(fn, onfail) {
+  const sc = $('panel').scrollTop; let err = '';
+  try { await fn(); } catch (e) { err = 'Erreur de base de données : ' + e.message; if (onfail) onfail(); }
+  await draw(); if (err) { FEEDERR = err; draw(true); } $('panel').scrollTop = sc;
+}
+function replyBox(key, fn) {
+  const w = mk('div', 'rbox'), i = mk('textarea'), b = mk('button', 'mini send', 'Répondre');
+  i.placeholder = 'Répondre en tant qu’admin…'; i.maxLength = MAXTXT; i.rows = 2; i.value = DRAFT[key] || '';
+  i.oninput = () => { DRAFT[key] = i.value; };
+  const go = () => { const x = i.value.trim().slice(0, MAXTXT); if (!x || b.disabled) return; b.disabled = true; delete DRAFT[key]; fn(x, () => { DRAFT[key] = x; }); };
+  b.onclick = go; i.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go(); } };
+  w.append(i, b); return w;
+}
+const staffReply = x => ({ by: ADMIN, txt: x, ts: Date.now(), st: 1, adm: 1 });
+function repliesEl(path, rp) {
+  const rps = rowsOf(rp).sort(byId); if (!rps.length) return null;
+  const t = mk('div', 'rps'); rps.forEach(([id, r]) => t.append(rpEl(r, confirmBtn('Suppr.', () => act(() => ddel(path + '/rp/' + id)), 'danger')))); return t;
+}
+function rowMsg(m) {
+  const c = mk('div', 'post' + (m.read ? '' : ' unread')), h = mk('div', 'ph2'), nm = mk('span', 'nm'); nm.append(mk('b', '', m.by || m.uk));
+  h.append(nm, mk('small', '', fdate(m.ts)), mk('span', 'chip' + (m.read ? '' : ' new'), m.read ? 'Lu' : 'Nouveau'));
+  c.append(h, mk('div', 'pt', m.txt));
+  const rl = repliesEl(m.path, m.rp); if (rl) c.append(rl);
+  c.append(replyBox(m.path, (x, fail) => act(async () => { await dput(m.path + '/rp/' + newId(), staffReply(x)); await dput(m.path + '/read', true); }, fail)));
+  const a = mk('div', 'pa'), rd = mk('button', 'mini', m.read ? 'Marquer non lu' : 'Marquer lu'); rd.onclick = () => act(() => dput(m.path + '/read', !m.read));
+  a.append(rd, confirmBtn('Supprimer le message', () => act(() => ddel(m.path)), 'danger')); c.append(a); return c;
+}
+function rowPost(p) {
+  const K = KIND[p.type], c = mk('div', 'post'), h = mk('div', 'ph2'), nm = mk('span', 'nm'); nm.append(mk('b', '', p.by || '?')); if (p.c) nm.append(' ', certEl());
+  h.append(nm, mk('small', '', fdate(p.ts))); if (p.status) h.append(mk('span', 'chip ' + (isDone(p) ? 'ok' : 'wip'), p.status));
+  c.append(h, mk('div', 'pt', p.txt));
+  /* likes */
+  const lks = Object.keys(p.lk || {}), n = lks.filter(k => k !== 'staff').length, liked = lks.includes('staff'), a = mk('div', 'pa');
+  const bl = mk('button', 'mini lk' + (liked ? ' on' : ''), (liked ? '♥' : '♡') + ' Aimer (staff)'); bl.onclick = () => act(() => liked ? ddel(p.path + '/lk/staff') : dput(p.path + '/lk/staff', 1));
+  a.append(bl, mk('span', 'chip', n + ' like' + (n > 1 ? 's' : '') + ' joueur' + (n > 1 ? 's' : ''))); c.append(a);
+  /* statut : Nouveau / En cours / Résolu (bug) ou Pris en compte (idée) */
+  const s = mk('div', 'pa'); s.append(mk('small', '', 'Statut :'));
+  [['', 'Nouveau'], [WIP, WIP], [K.done, '✔ ' + K.done]].forEach(([v, l]) => {
+    const on = (p.status || '') === v, b = mk('button', 'mini' + (v === K.done ? ' done' : '') + (on ? ' on' : ''), l);
+    b.onclick = () => act(() => (v && !on) ? dput(p.path + '/status', v) : ddel(p.path + '/status')); s.append(b);
+  });
+  s.append(confirmBtn('Supprimer le post', () => act(() => ddel(p.path)), 'danger')); c.append(s);
+  const rl = repliesEl(p.path, p.rp); if (rl) c.append(rl);
+  c.append(replyBox(p.path, (x, fail) => act(() => dput(p.path + '/rp/' + newId(), staffReply(x)), fail))); return c;
+}
+function drawBoard() {
+  $('net').textContent = MODE === 'firebase' ? 'Base en ligne (firebase) : tous les joueurs, tous les appareils' : 'ATTENTION, base locale : seuls les messages de ce navigateur sont visibles. Renseignez FB_URL (voir le guide).';
+  const f = $('q').value.trim().toLowerCase(), ul = $('list'); ul.replaceChildren();
+  const bar = mk('div', 'fbar'); FILTERS[tab].forEach(([v, l]) => { const b = mk('button', 'mini' + (FLT[tab] === v ? ' on' : ''), l); b.onclick = () => { FLT[tab] = v; draw(true); }; bar.append(b); }); ul.append(bar);
+  if (FEEDERR) ul.append(mk('p', 'ferr', FEEDERR));
+  const pl = x => x > 1 ? 's' : '';
+  if (tab === 'M') {
+    const un = MSG.filter(m => !m.read).length, fl = FLT.M;
+    const l = MSG.filter(m => ((m.by || '') + ' ' + m.txt).toLowerCase().includes(f) && (fl === 'all' || (fl === 'new' ? !m.read : !!m.read)));
+    $('cnt').textContent = MSG.length + ' message' + pl(MSG.length) + ' reçu' + pl(MSG.length) + ' · ' + un + ' non lu' + pl(un) + '. Répondre marque le message comme lu : le joueur voit votre réponse dans le jeu.';
+    l.forEach(m => ul.appendChild(rowMsg(m))); if (!l.length) ul.appendChild(mk('small', '', 'Aucun message.'));
+  } else {
+    const kind = TABKIND[tab], K = KIND[kind], fl = FLT[tab], all = POSTS.filter(p => p.type === kind);
+    const l = all.filter(p => ((p.by || '') + ' ' + p.txt).toLowerCase().includes(f) && (fl === 'all' || (fl === 'done' ? isDone(p) : !isDone(p)))).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    $('cnt').textContent = all.length + ' ' + (all.length > 1 ? K.many : K.one) + '. Vous pouvez aimer, répondre, changer le statut (' + K.done + ') ou supprimer le post. Les joueurs voient vos réponses, votre like et le statut.';
+    l.forEach(p => ul.appendChild(rowPost(p))); if (!l.length) ul.appendChild(mk('small', '', 'Rien pour l’instant.'));
+  }
+}
 /* ---------- Panneau ---------- */
-let ALL = [];
+let ALL = [], MSG = [], POSTS = [];
 async function draw(keep) {
-  if (!keep) { try { ALL = (await everyone()).sort((a, b) => (b.best || 0) - (a.best || 0)); } catch (e) { ALL = []; setErr('Base injoignable : ' + e.message); } }
+  if (!keep) { try { ALL = (await everyone()).sort((a, b) => (b.best || 0) - (a.best || 0)); } catch (e) { ALL = []; setErr('Base injoignable : ' + e.message); }
+    FEEDERR = ''; try { await loadFeed(); } catch (e) { MSG = []; POSTS = []; FEEDERR = 'Messages injoignables : ' + e.message; } }
+  tabsUI(); if (tab === 'M' || tab === 'B' || tab === 'I') return drawBoard();
   $('net').textContent = MODE !== 'local' ? 'Base en ligne (' + MODE + ') : tous les comptes, tous les appareils' : 'ATTENTION, base locale : seuls les comptes de ce navigateur sont visibles. Renseignez FB_URL (voir le guide).';
   const live = ALL.filter(u => !u.del), bin = ALL.filter(u => u.del);
   $('tA').classList.toggle('on', tab === 'A'); $('tT').classList.toggle('on', tab === 'T'); $('tT').textContent = 'Corbeille' + (bin.length ? ' (' + bin.length + ')' : '');
