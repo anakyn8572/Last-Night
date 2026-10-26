@@ -113,7 +113,7 @@ function show(id) { ['auth', 'menu', 'over', 'pause', 'perk', 'info'].forEach(s 
 function hud(v) { $('hud').classList.toggle('hide', !v); $('hbot').classList.toggle('hide', !v); }
 function showMenu() {
   G.playing = false; hud(false); show(cur ? 'menu' : 'auth');
-  if (cur) { $('who').textContent = cur.name; if (cur.cert) $('who').append(' ', certEl()); $('mav').replaceChildren(avEl(cur, 84)); $('rec').textContent = cur.best; $('mon').textContent = fmt(cur.money); renderLB($('lb')); } else setMode(mode);
+  if (cur) { $('who').textContent = cur.name; if (cur.cert) $('who').append(' ', certEl()); $('mav').replaceChildren(avEl(cur, 84)); $('rec').textContent = cur.best; $('mon').textContent = fmt(cur.money); modeLbl(); renderLB($('lb')); } else setMode(mode);
 }
 const setErr = (t, ok) => { const e = $('err'); e.textContent = t; e.style.color = ok ? 'var(--ok)' : ''; };
 async function hashPw(p, k) {
@@ -183,7 +183,7 @@ function info(tab) {
   $('infoBody').scrollTop = 0;
   curTab = tab; setBack(null);
   if (tab === 's') return stats(); if (tab === 'p') return profHome(); if (tab === 'k') return skins(); if (tab === 'b') return shop();
-  if (tab === 't') return titlesPage(); if (tab === 'a') return upgrades(); if (tab === 'v') return userList(); if (tab === 'n') return infoPage(); if (tab === 'c') return cielPage(); if (tab === 'h') return staffHome();
+  if (tab === 't') return titlesPage(); if (tab === 'a') return upgrades(); if (tab === 'v') return userList(); if (tab === 'n') return infoPage(); if (tab === 'c') return cielPage(); if (tab === 'h') return staffHome(); if (tab === 'g') return settingsPage(); if (tab === 'm') return modePage();
   const box = $('infoBody'); box.innerHTML = ''; box.className = 'grid2';
   const L = { w: ['Armes découvertes', WP, 'dw', 'wk'], z: ['Zombies découverts', TYPES, 'dz', 'zk'], q: ['Pouvoirs découverts', PW, 'dp', 'pk'] }[tab];
   $('infoT').textContent = L[0];
@@ -248,6 +248,42 @@ const pdur = id => PW[id].dur * (1 + .1 * plv(id));
 const pch = id => PW[id].n + (plv(id) >= 3 ? 1 : 0);
 const pcost = id => Math.round((plv(id) + 1) * (160 + Object.keys(PW).indexOf(id) * 25));
 function mk(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+/* ---------- Modes de jeu et paramètres ---------- */
+const MODES = { solo: { name: 'Solo infini', sub: 'Seul contre les vagues, jusqu’à la vague 100' } };
+let gameMode = 'solo'; try { const m = localStorage.getItem('dn_gmode'); if (MODES[m]) gameMode = m; } catch (e) {}
+function modeLbl() { const e = $('modeSel'); if (e) e.textContent = 'Mode sélectionné : ' + MODES[gameMode].name; }
+/* illustration du mode : le survivant au centre, entouré de zombies, sous le signe infini */
+function modeArt() {
+  const c = document.createElement('canvas'); c.width = 240; c.height = 150; const x = c.getContext('2d');
+  const g = x.createRadialGradient(120, 82, 10, 120, 82, 150); g.addColorStop(0, '#1d3150'); g.addColorStop(1, '#09101e'); x.fillStyle = g; x.fillRect(0, 0, 240, 150);
+  x.strokeStyle = 'rgba(160,200,255,.07)'; x.lineWidth = 1; for (let i = 0; i <= 240; i += 24) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, 150); x.stroke(); } for (let j = 0; j <= 150; j += 24) { x.beginPath(); x.moveTo(0, j); x.lineTo(240, j); x.stroke(); }
+  x.font = '400 64px Impact,sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = 'rgba(255,122,47,.2)'; x.fillText('∞', 120, 30);
+  const Z = [['walk', 34, 70], ['fast', 206, 66], ['tank', 56, 120], ['brute', 188, 118], ['walk', 120, 128]];
+  x.strokeStyle = 'rgba(255,210,122,.55)'; x.lineWidth = 2; Z.slice(0, 2).forEach(([, zx, zy]) => { x.beginPath(); x.moveTo(132, 80); x.lineTo(zx + (zx < 120 ? 18 : -18), zy); x.stroke(); });
+  Z.forEach(([k, zx, zy]) => { try { x.drawImage(icon('z', TYPES[k], true, k), zx - 26, zy - 28, 52, 52); } catch (e) {} });
+  x.save(); x.translate(120, 82); x.fillStyle = '#ff7a2f'; x.strokeStyle = '#0d1524'; x.lineWidth = 3; x.beginPath(); x.arc(0, 0, 16, 0, 7); x.fill(); x.stroke();
+  x.fillStyle = '#2a3144'; x.beginPath(); x.arc(0, 0, 6, 0, 7); x.fill(); x.save(); x.translate(20, 0); x.scale(.55, .55); wArt(x, 'pistol', '#ffd27a'); x.restore(); x.restore();
+  return c;
+}
+function modePage() {
+  curTab = 'm'; setBack(null); const box = $('infoBody'); box.className = 'modes'; box.replaceChildren(); box.scrollTop = 0;
+  $('infoT').textContent = 'Choisir le mode'; $('infoC').textContent = 'Cliquez sur un mode pour l’activer, puis lancez la partie avec « Jouer ».';
+  const grid = mk('div', 'sqs');
+  Object.entries(MODES).forEach(([id, m]) => {
+    const on = id === gameMode, b = mk('button', 'sq mode' + (on ? ' on' : ''));
+    b.append(modeArt(id), mk('b', '', m.name), mk('small', '', m.sub), mk('span', 'mtag', on ? '✔ Mode activé' : 'Activer'));
+    b.onclick = () => { gameMode = id; try { localStorage.setItem('dn_gmode', id); } catch (e) {} modeLbl(); modePage(); };
+    grid.appendChild(b);
+  });
+  box.appendChild(grid); show('info');
+}
+function settingsPage() {
+  curTab = 'g'; setBack(null); const box = $('infoBody'); box.className = 'ciel'; box.replaceChildren(); box.scrollTop = 0;
+  $('infoT').textContent = 'Paramètres'; $('infoC').textContent = 'Réglages du jeu';
+  const row = mk('div', 'cx'), i = mk('i', 'md', '♪'), t = mk('div'), b = mk('button', 'mini snd');
+  i.style.background = '#ffb347'; b.onclick = toggleSnd;
+  t.append(mk('b', '', 'Son'), mk('p', '', 'Active ou coupe les bruitages du jeu (touche M en partie).'), b); row.append(i, t); box.appendChild(row); sndLbl(); show('info');
+}
 function setBack(f) { backFn = f; $('btnInfoBack').textContent = f ? 'Retour' : 'Retour au menu'; }
 function nameEl(u) { const s = mk('span', 'nm', u.name); if (u.cert) s.append(' ', certEl()); if (tiOf(u)) s.append(' ', ttlEl(u.ti)); return s; }
 function fillTiles(box, list) { list.forEach(([l, v]) => { const t = mk('div', 'tile'); t.append(mk('b', '', v), mk('span', '', l)); box.appendChild(t); }); }
@@ -274,7 +310,8 @@ async function profHome() {
   rv.onclick = () => { clearTimeout(tm); if (ipb.textContent.includes('•')) { ipb.textContent = u.ip || '—'; rv.textContent = 'Masquer l’IP'; tm = setTimeout(rv.onclick, 10000); } else { ipb.textContent = '••••••••••'; rv.textContent = 'Afficher l’IP'; } };
   const b3 = mk('button', 'btn ghost', 'Détails du profil'); b3.onclick = () => det.classList.toggle('hide');
   const tt = tiOf(u) ? [ttlEl(u.ti, true)] : [];
-  box.replaceChildren(ph, nm, ...tt, mk('small', '', u.bio || 'Aucune présentation pour l’instant.'), tl, b1, b2, b4, b3, det);
+  const b5 = mk('button', 'btn ghost', 'Changer de joueur'); b5.onclick = logout;
+  box.replaceChildren(ph, nm, ...tt, mk('small', '', u.bio || 'Aucune présentation pour l’instant.'), tl, b1, b2, b4, b3, det, b5);
 }
 async function inspect(k, back) {
   curTab = 'i'; const box = $('infoBody'); box.className = 'prof'; box.replaceChildren(mk('small', '', 'Chargement…'));
@@ -455,14 +492,14 @@ function infoPage() {
 }
 function cielPage() {
   curTab = 'c'; setBack(null); const box = $('infoBody'); box.className = 'ciel'; box.replaceChildren();
-  $('infoT').textContent = 'Ciel SMP'; $('infoC').textContent = 'Classement des meilleurs joueurs et récompenses';
+  $('infoT').textContent = 'Ciel SMP'; $('infoC').textContent = 'Classement solo des meilleurs joueurs et récompenses';
   const row = (lab, txt, col, tc) => { const c = mk('div', 'cx'), i = mk('i', 'md', lab), t = mk('div'); i.style.background = col; if (tc) i.style.color = tc; t.append(mk('b', '', txt)); c.append(i, t); return c; };
   box.append(mk('h2', '', 'Récompenses dans le Ciel SMP'),
     mk('p', 'note', 'Ces récompenses sont à gagner dans le Ciel SMP, le serveur Minecraft : argent et clés du serveur, pas l’argent de ce jeu.'),
     row('1', '1er : ' + CIEL[0][0], CIEL[0][1]), row('2', '2e : ' + CIEL[1][0], CIEL[1][1]), row('3', '3e : ' + CIEL[2][0], CIEL[2][1]),
     row('4+', 'Tous les autres : ' + CIEL_OTHER, '#2a3d5e', '#fff'));
   const lb = mk('div', 'lb'), net = mk('small', 'net'), ol = mk('ol'); lb.append(net, ol);
-  box.append(mk('h2', '', 'Classement des meilleurs joueurs'), lb); show('info'); renderLB(ol, true);
+  box.append(mk('h2', '', 'Classement solo des meilleurs joueurs'), mk('p', 'note', 'Ce classement ne compte que les parties en solo.'), lb); show('info'); renderLB(ol, true);
 }
 /* ---------- Titres ---------- */
 const sm = o => Object.values(o || {}).reduce((a, b) => a + b, 0);
@@ -592,7 +629,7 @@ $('btnInfoBack').onclick = () => backFn ? backFn() : showMenu();
 $('btnLogin').onclick = login; $('howBox').innerHTML = HOW; $('howBox').onclick = e => { const b = e.target.closest('#howMore'); if (!b) return; const h = $('howExtra').classList.toggle('hide'); b.textContent = h ? 'Afficher plus' : 'Afficher moins'; if (h) $('howBox').scrollTop = 0; }; $('tabL').onclick = () => setMode('login'); $('tabR').onclick = () => setMode('reg');
 $('showp').onchange = e => $('pass').type = $('pass2').type = e.target.checked ? 'text' : 'password';
 $('pass2').onkeydown = $('pass').onkeydown = $('pseudo').onkeydown = e => { if (e.key === 'Enter') login(); };
-$('btnOut').onclick = () => { localStorage.removeItem('dn_sess'); cur = null; ckey = null; showMenu(); };
+function logout() { localStorage.removeItem('dn_sess'); cur = null; ckey = null; showMenu(); }
 $('btnPlay').onclick = $('btnAgain').onclick = start;
 $('btnMenu').onclick = showMenu;
 $('btnQuit').onclick = () => { if (G.playing) { G.paused = false; end(); } else showMenu(); };
