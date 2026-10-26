@@ -221,3 +221,16 @@ textarea{font-family:inherit;resize:vertical;min-height:90px;-webkit-user-select
 #inv .ic.sel{border-color:var(--acc2);color:#fff;background:rgba(40,60,96,.92);box-shadow:0 0 0 1px var(--acc2),0 0 10px rgba(255,179,71,.4)}
 @supports (color:color-mix(in srgb,red,blue)){#inv .ic.sel{border-color:var(--wc,var(--acc2));box-shadow:0 0 0 1px var(--wc,var(--acc2)),0 0 12px color-mix(in srgb,var(--wc,#ffb347) 55%,transparent)}}
 #inv .ic.low .ia{color:var(--bad)}
+
+/* v11 : modes de jeu */
+.modebtn{text-align:center;padding:10px 14px}
+.modebtn b{display:block;font:400 22px Impact,"Arial Black",sans-serif;color:var(--txt);letter-spacing:.02em}
+.modebtn small{display:block;margin-top:3px;color:var(--acc2);font-size:13px}
+.modes{padding:8px 6px}
+.modes .sqs{grid-template-columns:repeat(auto-fit,minmax(210px,230px));justify-content:center}
+.sq.mode{justify-content:flex-start;gap:6px;padding:10px}
+.sq.mode canvas{width:100%;height:auto;display:block;border-radius:12px;border:1px solid var(--line)}
+.sq.mode b{font-size:26px}
+.sq.mode .mtag{margin-top:auto;font:400 12px Impact,sans-serif;letter-spacing:.05em;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:2px 14px}
+.sq.mode.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc),0 0 26px rgba(255,122,47,.35)}
+.sq.mode.on .mtag{background:var(--acc);color:#1a0d02;border-color:var(--acc)}
