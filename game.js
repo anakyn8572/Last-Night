@@ -113,7 +113,7 @@ function show(id) { ['auth', 'menu', 'over', 'pause', 'perk', 'info'].forEach(s 
 function hud(v) { $('hud').classList.toggle('hide', !v); $('hbot').classList.toggle('hide', !v); }
 function showMenu() {
   G.playing = false; hud(false); show(cur ? 'menu' : 'auth');
-  if (cur) { $('who').textContent = cur.name; if (cur.cert) $('who').append(' ', certEl()); $('mav').replaceChildren(avEl(cur, 84)); $('rec').textContent = cur.best; $('mon').textContent = fmt(cur.money); modeLbl(); renderLB($('lb')); frBadge(); } else setMode(mode);
+  if (cur) { $('mav').replaceChildren(avEl(cur, 84)); $('mon').textContent = fmt(cur.money); modeLbl(); renderLB($('lb')); frBadge(); } else setMode(mode);
 }
 const setErr = (t, ok) => { const e = $('err'); e.textContent = t; e.classList.toggle('ok', !!ok); };
 async function hashPw(p, k) {
@@ -248,12 +248,206 @@ const pch = id => PW[id].n + (plv(id) >= 3 ? 1 : 0);
 const pcost = id => Math.round((plv(id) + 1) * (160 + Object.keys(PW).indexOf(id) * 25));
 function mk(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
 /* ---------- Modes de jeu et paramètres ---------- */
-const MODES = { solo: { name: 'Solo infini', sub: 'Mode infini : survivez le plus longtemps possible' }, duo: { name: 'Duo infini', sub: 'Plus de monstres, plus dur. Encore en développement' } };
+const MODES = { solo: { name: 'Solo infini', sub: 'Mode infini : survivez le plus longtemps possible' }, duo: { name: 'Duo infini', sub: 'Plus de monstres, plus dur. Encore en développement' }, village: { name: 'Défense du village', sub: 'Protégez les villageois, construisez, recrutez des soldats' } };
 let gameMode = 'solo'; try { const m = localStorage.getItem('dn_gmode'); if (MODES[m]) gameMode = m; } catch (e) {}
 function modeLbl() { const e = $('modeSel'); if (e) e.textContent = 'Mode sélectionné : ' + MODES[gameMode].name; }
 /* illustration du mode : scène de nuit éclairée à la lampe torche (générée une seule fois puis copiée) */
 const MART = {};
+/* ---------- Mode « Défense du village » (jeu séparé : village.html, affiché en plein écran par-dessus le menu) ---------- */
+function villageArt() {
+  const Wd = 960, Hd = 600, c = document.createElement('canvas'); c.width = Wd; c.height = Hd; const x = c.getContext('2d');
+  let sd = 31; const R = () => { sd = (sd + 0x6D2B79F5) | 0; let t = Math.imul(sd ^ (sd >>> 15), 1 | sd); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const rr = (a, b) => a + R() * (b - a);
+  const sc = y => .35 + (y - 392) / 190;
+  const glow = (gx, gy, r, rgb, a) => { const g = x.createRadialGradient(gx, gy, 0, gx, gy, r); g.addColorStop(0, 'rgba(' + rgb + ',' + a + ')'); g.addColorStop(1, 'rgba(' + rgb + ',0)'); x.fillStyle = g; x.fillRect(gx - r, gy - r, r * 2, r * 2); };
+  const lights = [], eyes = [], tracers = [], torches = [];
+  /* ciel, étoiles, lune */
+  const sky = x.createLinearGradient(0, 0, 0, 400); sky.addColorStop(0, '#03060f'); sky.addColorStop(.4, '#111c42'); sky.addColorStop(.75, '#3e2f5c'); sky.addColorStop(1, '#a8573f');
+  x.fillStyle = sky; x.fillRect(0, 0, Wd, Hd);
+  for (let i = 0; i < 190; i++) { const sy = Math.pow(R(), 1.7) * 300; x.fillStyle = 'rgba(255,255,255,' + rr(.2, .9) + ')'; x.beginPath(); x.arc(rr(0, Wd), sy, rr(.4, 1.5), 0, 7); x.fill(); }
+  glow(740, 120, 300, '190,205,255', .32);
+  const mg = x.createRadialGradient(728, 108, 6, 740, 120, 58); mg.addColorStop(0, '#fffdf0'); mg.addColorStop(1, '#cfdaf2'); x.fillStyle = mg; x.beginPath(); x.arc(740, 120, 58, 0, 7); x.fill();
+  [[722, 104, 12], [756, 138, 9], [748, 96, 6], [718, 140, 7]].forEach(([cx, cy, cr]) => { x.fillStyle = 'rgba(150,165,205,.35)'; x.beginPath(); x.arc(cx, cy, cr, 0, 7); x.fill(); });
+  for (let i = 0; i < 9; i++) { const cx = rr(380, 980), cy = rr(50, 230); x.fillStyle = 'rgba(18,26,60,' + rr(.35, .6) + ')'; x.beginPath(); x.ellipse(cx, cy, rr(70, 170), rr(7, 16), rr(-.06, .06), 0, 7); x.fill(); x.fillStyle = 'rgba(190,205,255,.08)'; x.beginPath(); x.ellipse(cx, cy - 6, rr(50, 130), 2.5, 0, 0, 7); x.fill(); }
+  /* montagnes et brume d'horizon */
+  const ridge = (base, amp, col, o) => { x.fillStyle = col; x.beginPath(); x.moveTo(0, Hd); for (let i = 0; i <= Wd; i += 12) x.lineTo(i, base - amp * (Math.sin(i * .011 + o) * .5 + Math.sin(i * .029 + o * 2) * .3 + Math.sin(i * .067 + o) * .2 + .6)); x.lineTo(Wd, Hd); x.fill(); };
+  ridge(330, 80, '#1c2349', 1); ridge(358, 60, '#151c3b', 3.2); ridge(382, 38, '#0f1630', 5.1);
+  const mist = x.createLinearGradient(0, 320, 0, 405); mist.addColorStop(0, 'rgba(190,110,100,0)'); mist.addColorStop(.6, 'rgba(190,110,100,.2)'); mist.addColorStop(1, 'rgba(190,110,100,0)'); x.fillStyle = mist; x.fillRect(0, 320, Wd, 85);
+  /* sol */
+  const gr = x.createLinearGradient(0, 388, 0, Hd); gr.addColorStop(0, '#16261f'); gr.addColorStop(.35, '#0e1a16'); gr.addColorStop(1, '#040807');
+  x.fillStyle = gr; x.beginPath(); x.moveTo(0, Hd); for (let i = 0; i <= Wd; i += 12) x.lineTo(i, 392 + Math.sin(i * .012) * 6); x.lineTo(Wd, Hd); x.fill();
+  x.lineCap = 'round';
+  for (let i = 0; i < 1400; i++) { const gy = rr(396, Hd), gx = rr(0, Wd), h = 2 + (gy - 392) / 40; x.strokeStyle = 'rgba(' + ((50 + R() * 40) | 0) + ',' + ((100 + R() * 50) | 0) + ',' + ((70 + R() * 30) | 0) + ',' + rr(.08, .3) + ')'; x.lineWidth = 1; x.beginPath(); x.moveTo(gx, gy); x.lineTo(gx + rr(-2, 2), gy - h * rr(.5, 1.3)); x.stroke(); }
+  for (let i = 0; i < 46; i++) { x.fillStyle = 'rgba(62,42,30,' + rr(.15, .32) + ')'; x.beginPath(); x.ellipse(rr(0, 470), rr(425, 595), rr(14, 50), rr(4, 12), 0, 0, 7); x.fill(); }
+  /* arbres morts */
+  const bare = (bx, by, len, ang, d) => { if (d > 5 || len < 4) return; const ex = bx + Math.cos(ang) * len, ey = by + Math.sin(ang) * len; x.lineWidth = Math.max(1, len * .16); x.strokeStyle = '#080c16'; x.beginPath(); x.moveTo(bx, by); x.lineTo(ex, ey); x.stroke(); bare(ex, ey, len * rr(.62, .78), ang - rr(.25, .6), d + 1); bare(ex, ey, len * rr(.55, .75), ang + rr(.25, .6), d + 1); };
+  [[70, 412, 34], [210, 404, 28], [345, 410, 30]].forEach(([tx, ty, tl]) => bare(tx, ty, tl, -Math.PI / 2, 0));
+  /* zombies (silhouettes éclairées par les torches) */
+  const zomb = (zx, zy, k) => {
+    const s = sc(zy) * (k === 't' ? 1.35 : 1), crawl = k === 'c', st = Math.sin(zx * .37) * 4 * s, lean = rr(0, 5) * s;
+    const body = (ox, col) => {
+      x.strokeStyle = col; x.fillStyle = col; x.lineCap = 'round';
+      if (crawl) { x.lineWidth = 11 * s; x.beginPath(); x.moveTo(zx + ox - 12 * s, zy - 9 * s); x.lineTo(zx + ox + 8 * s, zy - 13 * s); x.stroke(); x.beginPath(); x.arc(zx + ox + 15 * s, zy - 14 * s, 6 * s, 0, 7); x.fill(); x.lineWidth = 4 * s; x.beginPath(); x.moveTo(zx + ox + 8 * s, zy - 9 * s); x.lineTo(zx + ox + 28 * s, zy - 4 * s); x.moveTo(zx + ox + 6 * s, zy - 14 * s); x.lineTo(zx + ox + 26 * s, zy - 13 * s); x.stroke(); return; }
+      x.lineWidth = 5 * s; x.beginPath(); x.moveTo(zx + ox - s, zy - 19 * s); x.lineTo(zx + ox - 5 * s + st, zy); x.moveTo(zx + ox + s, zy - 19 * s); x.lineTo(zx + ox + 6 * s - st, zy); x.stroke();
+      x.lineWidth = (k === 't' ? 17 : 12) * s; x.beginPath(); x.moveTo(zx + ox, zy - 19 * s); x.lineTo(zx + ox + 3 * s + lean, zy - 38 * s); x.stroke();
+      x.beginPath(); x.arc(zx + ox + 6 * s + lean, zy - 46 * s, (k === 't' ? 8 : 6.5) * s, 0, 7); x.fill();
+      x.lineWidth = 4 * s; x.beginPath(); x.moveTo(zx + ox + 3 * s + lean, zy - 36 * s); x.lineTo(zx + ox + 24 * s, zy - 34 * s + st); x.moveTo(zx + ox + 3 * s + lean, zy - 32 * s); x.lineTo(zx + ox + 19 * s, zy - 26 * s - st); x.stroke();
+    };
+    x.fillStyle = 'rgba(0,0,0,.45)'; x.beginPath(); x.ellipse(zx + 4 * s, zy + 1, 16 * s, 4 * s, 0, 0, 7); x.fill();
+    x.save(); x.globalAlpha = .5; body(1.8 * s, '#79b890'); x.restore(); body(0, '#121c17');
+    eyes.push(crawl ? [zx + 18 * s, zy - 15 * s, s, R() < .8 ? '255,40,40' : '255,210,60'] : [zx + 9 * s + lean, zy - 47 * s, s, R() < .8 ? '255,40,40' : '255,210,60']);
+  };
+  for (let i = 0; i < 44; i++) zomb(rr(10, 450), rr(396, 424), 'n');
+  /* maisons */
+  const house = (hx, by, w, h) => {
+    x.fillStyle = 'rgba(0,0,0,.4)'; x.beginPath(); x.ellipse(hx + w / 2 + 8, by + 3, w * .62, 7, 0, 0, 7); x.fill();
+    const wg = x.createLinearGradient(hx, 0, hx + w, 0); wg.addColorStop(0, '#2a2028'); wg.addColorStop(1, '#4a3535'); x.fillStyle = wg; x.fillRect(hx, by - h, w, h);
+    x.strokeStyle = 'rgba(0,0,0,.25)'; x.lineWidth = 1; for (let i = 1; i < 6; i++) { x.beginPath(); x.moveTo(hx, by - h + i * h / 6); x.lineTo(hx + w, by - h + i * h / 6); x.stroke(); }
+    x.fillStyle = '#2a2530'; x.fillRect(hx + w * .68, by - h - w * .34, w * .1, w * .26);
+    const ty = by - h - w * .36;
+    x.fillStyle = '#5a2b2b'; x.beginPath(); x.moveTo(hx - w * .1, by - h + 3); x.lineTo(hx + w / 2, ty); x.lineTo(hx + w * 1.1, by - h + 3); x.closePath(); x.fill();
+    x.fillStyle = 'rgba(0,0,0,.28)'; x.beginPath(); x.moveTo(hx + w / 2, ty); x.lineTo(hx + w * 1.1, by - h + 3); x.lineTo(hx + w / 2, by - h + 3); x.closePath(); x.fill();
+    x.strokeStyle = 'rgba(200,215,255,.55)'; x.lineWidth = 1.6; x.beginPath(); x.moveTo(hx - w * .1, by - h + 3); x.lineTo(hx + w / 2, ty); x.stroke();
+    x.fillStyle = '#1a1210'; x.fillRect(hx + w * .12, by - h * .55, w * .2, h * .55);
+    [.52, .78].forEach(k => {
+      const wx = hx + w * k - w * .08, wy = by - h * .85, ww = w * .16, wh = h * .34;
+      x.fillStyle = '#ffcf6a'; x.fillRect(wx, wy, ww, wh); x.strokeStyle = '#3a2418'; x.lineWidth = Math.max(1, w * .02); x.strokeRect(wx, wy, ww, wh);
+      x.beginPath(); x.moveTo(wx + ww / 2, wy); x.lineTo(wx + ww / 2, wy + wh); x.moveTo(wx, wy + wh / 2); x.lineTo(wx + ww, wy + wh / 2); x.stroke();
+      lights.push([wx + ww / 2, wy + wh / 2, w * .75, '255,185,80', .45]);
+    });
+    for (let k = 0; k < 5; k++) { x.fillStyle = 'rgba(150,160,185,' + (.17 - k * .027) + ')'; x.beginPath(); x.ellipse(hx + w * .73 + k * 5 + rr(-2, 2), ty - 4 - k * 13, 5 + k * 3.5, 4 + k * 2.5, 0, 0, 7); x.fill(); }
+  };
+  [[590, 430, 64, 38], [690, 424, 56, 34], [790, 432, 70, 42], [880, 428, 60, 38], [640, 470, 92, 54], [770, 486, 100, 60], [880, 490, 84, 50]].sort((a, b) => a[1] - b[1]).forEach(h => house(...h));
+  /* palissade */
+  const fx = y => 470 + (y - 396) * .12;
+  let prev = null;
+  for (let py = 396, i = 0; py < 590; py += 9 * sc(py) * 1.25, i++) {
+    const s = sc(py), px = fx(py), h = 60 * s, w = 8.5 * s;
+    if (prev) { x.strokeStyle = '#2b1d12'; x.lineWidth = 3 * s; [.3, .66].forEach(k => { x.beginPath(); x.moveTo(prev.px, prev.py - prev.h * k); x.lineTo(px, py - h * k); x.stroke(); }); }
+    const pg = x.createLinearGradient(px - w / 2, 0, px + w / 2, 0); pg.addColorStop(0, '#3a281a'); pg.addColorStop(.6, '#5b3d24'); pg.addColorStop(1, '#a06a3a');
+    x.fillStyle = 'rgba(0,0,0,.4)'; x.beginPath(); x.ellipse(px + 3 * s, py + 1, w, 2.5 * s, 0, 0, 7); x.fill();
+    x.fillStyle = pg; x.beginPath(); x.moveTo(px - w / 2, py); x.lineTo(px - w / 2, py - h + 9 * s); x.lineTo(px, py - h); x.lineTo(px + w / 2, py - h + 9 * s); x.lineTo(px + w / 2, py); x.closePath(); x.fill();
+    if (i % 4 === 1) torches.push([px - 7 * s, py - h - 2 * s, s]);
+    prev = { px, py, h };
+  }
+  torches.forEach(([tx, ty, s]) => {
+    x.strokeStyle = '#2b1a0e'; x.lineWidth = 3 * s; x.beginPath(); x.moveTo(tx, ty + 18 * s); x.lineTo(tx, ty); x.stroke();
+    [['#ff7a1f', 1], ['#ffb03a', .68], ['#fff2b0', .38]].forEach(([col, k]) => { x.fillStyle = col; x.beginPath(); x.moveTo(tx, ty - 17 * s * k); x.quadraticCurveTo(tx + 7 * s * k, ty - 5 * s * k, tx, ty + 2 * s); x.quadraticCurveTo(tx - 7 * s * k, ty - 5 * s * k, tx, ty - 17 * s * k); x.fill(); });
+    lights.push([tx, ty - 6 * s, 95 * s, '255,150,50', .6]);
+  });
+  /* soldats */
+  const soldiers = [[428, 0], [462, 1], [498, 2], [536, 3], [570, 4]];
+  const near = [[398, 430], [372, 464], [404, 500], [350, 538], [392, 570]];
+  const sold = (sy, idx) => {
+    const s = sc(sy), sx = fx(sy) + 26 * s, flash = idx !== 2;
+    const body = (ox, rim) => {
+      const C = c2 => rim ? '#ffb070' : c2;
+      x.lineCap = 'round';
+      x.strokeStyle = C('#1d2735'); x.lineWidth = 5.5 * s; x.beginPath(); x.moveTo(sx + ox - s, sy - 18 * s); x.lineTo(sx + ox - 5 * s, sy); x.moveTo(sx + ox + s, sy - 18 * s); x.lineTo(sx + ox + 5 * s, sy); x.stroke();
+      x.strokeStyle = C('#3a4f6a'); x.lineWidth = 13 * s; x.beginPath(); x.moveTo(sx + ox, sy - 18 * s); x.lineTo(sx + ox - 2 * s, sy - 38 * s); x.stroke();
+      x.fillStyle = C('#b58d72'); x.beginPath(); x.arc(sx + ox - 4 * s, sy - 45.5 * s, 5.5 * s, 0, 7); x.fill();
+      x.fillStyle = C('#46563f'); x.beginPath(); x.arc(sx + ox - 4 * s, sy - 46.5 * s, 6.8 * s, Math.PI, 0); x.closePath(); x.fill();
+      x.strokeStyle = C('#3a4f6a'); x.lineWidth = 4.5 * s; x.beginPath(); x.moveTo(sx + ox - 2 * s, sy - 35 * s); x.lineTo(sx + ox - 20 * s, sy - 35.5 * s); x.stroke();
+      x.strokeStyle = C('#14171d'); x.lineWidth = 3.6 * s; x.beginPath(); x.moveTo(sx + ox + 5 * s, sy - 30 * s); x.lineTo(sx + ox - 38 * s, sy - 37 * s); x.stroke();
+      if (!rim) { x.strokeStyle = '#6a7380'; x.lineWidth = s; x.beginPath(); x.moveTo(sx - 8 * s, sy - 35.6 * s); x.lineTo(sx - 36 * s, sy - 38.4 * s); x.stroke(); }
+    };
+    x.fillStyle = 'rgba(0,0,0,.45)'; x.beginPath(); x.ellipse(sx + 3 * s, sy + 1, 15 * s, 4 * s, 0, 0, 7); x.fill();
+    x.save(); x.globalAlpha = .55; body(1.8 * s, true); x.restore(); body(0, false);
+    const mx = sx - 40 * s, my = sy - 37 * s, t = near[idx];
+    if (flash) lights.push([mx - 4 * s, my, 36 * s, '255,205,110', .95], [mx - 3 * s, my, 11 * s, '255,255,225', 1]);
+    tracers.push([mx, my, t[0] + 8 * sc(t[1]), t[1] - 30 * sc(t[1]), s]);
+  };
+  soldiers.forEach(([sy, i]) => sold(sy, i));
+  /* feu de camp et villageois */
+  const FX = 700, FY = 556, fs = 1.25;
+  x.fillStyle = 'rgba(60,45,32,.55)'; x.beginPath(); x.ellipse(FX, FY + 4, 74, 17, 0, 0, 7); x.fill();
+  for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283; x.fillStyle = '#3a3640'; x.beginPath(); x.ellipse(FX + Math.cos(a) * 30, FY + 6 + Math.sin(a) * 8, 6, 4, 0, 0, 7); x.fill(); }
+  x.strokeStyle = '#2a1a0e'; x.lineWidth = 7; x.beginPath(); x.moveTo(FX - 26, FY + 4); x.lineTo(FX + 24, FY - 5); x.moveTo(FX - 24, FY - 5); x.lineTo(FX + 26, FY + 4); x.stroke();
+  [['#ff6a1a', 1, 0], ['#ff9a2e', .78, -3], ['#ffd25a', .5, 2], ['#fff4c0', .28, 0]].forEach(([col, k, o]) => { x.fillStyle = col; x.beginPath(); x.moveTo(FX + o, FY - 70 * fs * k); x.quadraticCurveTo(FX + 24 * fs * k + o, FY - 22 * fs * k, FX + o, FY); x.quadraticCurveTo(FX - 24 * fs * k + o, FY - 22 * fs * k, FX + o, FY - 70 * fs * k); x.fill(); });
+  lights.push([FX, FY - 20, 240, '255,140,50', .6], [FX, FY + 4, 420, '255,120,40', .2]);
+  const vil = (vx, vy, ci) => {
+    const s = sc(vy) * .9, ox = (FX > vx ? 1 : -1) * 1.8 * s, cols = ['#6a4a3a', '#3a5a6a', '#6a3a50', '#4a6a3a'];
+    const body = (o, rim) => {
+      x.fillStyle = rim ? '#ffb070' : cols[ci]; x.beginPath(); x.moveTo(vx + o - 8 * s, vy); x.lineTo(vx + o + 8 * s, vy); x.lineTo(vx + o + 4 * s, vy - 26 * s); x.lineTo(vx + o - 4 * s, vy - 26 * s); x.closePath(); x.fill();
+      x.fillStyle = rim ? '#ffb070' : '#c8a081'; x.beginPath(); x.arc(vx + o, vy - 31 * s, 5 * s, 0, 7); x.fill();
+    };
+    x.fillStyle = 'rgba(0,0,0,.4)'; x.beginPath(); x.ellipse(vx + 3 * s, vy + 1, 10 * s, 3 * s, 0, 0, 7); x.fill();
+    x.save(); x.globalAlpha = .55; body(ox, true); x.restore(); body(0, false);
+  };
+  [[655, 566, 0], [692, 586, 1], [742, 572, 2], [776, 548, 3], [612, 522, 1], [862, 542, 2], [560, 498, 0], [925, 522, 3], [822, 574, 0], [930, 464, 1]].sort((a, b) => a[1] - b[1]).forEach(v => vil(...v));
+  /* zombies proches (devant la palissade) */
+  const Z = near.map((p, i) => [p[0], p[1], i === 1 ? 't' : i === 3 ? 'c' : 'n']);
+  [[300, 446, 'n'], [330, 488, 'n'], [282, 522, 't'], [262, 562, 'n'], [216, 458, 'c'], [190, 502, 'n'], [150, 542, 'n'], [120, 472, 't'], [92, 578, 'n'], [62, 432, 'n'], [30, 524, 'n'], [236, 584, 'c'], [410, 590, 'n'], [160, 430, 'n'], [320, 420, 'n'], [10, 470, 'n'], [60, 560, 'n'], [260, 410, 'n'], [200, 415, 'n'], [380, 415, 'n']].forEach(z => Z.push(z));
+  Z.sort((a, b) => a[1] - b[1]).forEach(z => zomb(...z));
+  /* éclaboussures de sang aux impacts */
+  tracers.forEach(t => { for (let j = 0; j < 9; j++) { x.fillStyle = R() < .6 ? '#c4121f' : '#8e0e19'; x.beginPath(); x.arc(t[2] + rr(-12, 12), t[3] + rr(-12, 12), rr(1, 3), 0, 7); x.fill(); } });
+  /* lumières additives */
+  x.globalCompositeOperation = 'lighter';
+  lights.forEach(l => glow(...l));
+  eyes.forEach(([ex, ey, s, rgb]) => { glow(ex, ey, 9 * s + 3, rgb, .85); x.fillStyle = 'rgb(' + rgb + ')'; x.beginPath(); x.arc(ex, ey, Math.max(.7, 1.3 * s), 0, 7); x.fill(); });
+  tracers.forEach(([ax, ay, bx, by, s]) => { const g = x.createLinearGradient(ax, ay, bx, by); g.addColorStop(0, 'rgba(255,235,170,0)'); g.addColorStop(1, 'rgba(255,235,170,.95)'); x.save(); x.shadowColor = '#ffb347'; x.shadowBlur = 8; x.strokeStyle = g; x.lineWidth = 1.8 * Math.max(.7, s); x.beginPath(); x.moveTo(ax, ay); x.lineTo(bx, by); x.stroke(); x.restore(); });
+  for (let i = 0; i < 34; i++) { x.fillStyle = 'rgba(255,' + ((150 + R() * 70) | 0) + ',80,' + rr(.35, .9) + ')'; x.beginPath(); x.arc(FX + rr(-46, 46), FY - 30 - Math.pow(R(), 1.5) * 150, rr(.8, 2.2), 0, 7); x.fill(); }
+  x.globalCompositeOperation = 'source-over';
+  /* brouillard, assombrissement côté zombies, vignette, grain */
+  for (let i = 0; i < 10; i++) glow(rr(0, 520), rr(430, 595), 170, '140,170,190', .08);
+  const dk = x.createLinearGradient(0, 0, 480, 0); dk.addColorStop(0, 'rgba(2,6,14,.4)'); dk.addColorStop(1, 'rgba(2,6,14,0)'); x.fillStyle = dk; x.fillRect(0, 0, 480, Hd);
+  const vg = x.createRadialGradient(Wd / 2, Hd / 2, 230, Wd / 2, Hd / 2, 580); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.75)'); x.fillStyle = vg; x.fillRect(0, 0, Wd, Hd);
+  for (let i = 0; i < 4200; i++) { x.fillStyle = R() < .5 ? 'rgba(255,255,255,.035)' : 'rgba(0,0,0,.07)'; x.fillRect(rr(0, Wd), rr(0, Hd), 1.4, 1.4); }
+  /* bandeau type HUD */
+  x.save(); x.textBaseline = 'top'; x.shadowColor = '#000'; x.shadowBlur = 10; x.font = '400 40px Impact,"Arial Black",sans-serif'; x.fillStyle = 'rgba(255,255,255,.92)'; x.textAlign = 'left'; x.fillText('VAGUE 12', 28, 24);
+  x.textAlign = 'right'; x.fillStyle = 'rgba(255,150,70,.95)'; x.font = '400 30px Impact,"Arial Black",sans-serif'; x.fillText('30 HABITANTS', Wd - 28, 30);
+  const tw = x.measureText('30 HABITANTS').width, ix = Wd - 28 - tw - 40;
+  x.fillStyle = 'rgba(255,150,70,.95)'; x.beginPath(); x.moveTo(ix, 56); x.lineTo(ix, 42); x.lineTo(ix + 15, 28); x.lineTo(ix + 30, 42); x.lineTo(ix + 30, 56); x.closePath(); x.fill();
+  x.restore();
+  return c;
+}
+function openVillage() {
+  /* le mode est dans village.js, chargé seulement quand on en a besoin */
+  const go = () => {
+    VS.saved = 0; VS.q = Promise.resolve();
+    window.DN_VILLAGE.open({ name: cur.name, skin: skinOf(cur), wl: cur.wl || {}, pl: cur.pl || {}, dw: cur.dw || [], dz: cur.dz || [], dp: cur.dp || [], money: cur.money || 0 });
+  };
+  if (window.DN_VILLAGE) return go();
+  const s = document.createElement('script'); s.src = 'village.js';
+  s.onload = go;
+  s.onerror = () => alert('Impossible de charger village.js : vérifiez qu’il est dans le même dossier que index.html.');
+  document.head.appendChild(s);
+}
+/* Argent du village : enregistré toutes les 8 s environ (comme dans les autres modes), le reste à la fin de la partie. */
+const VS = { saved: 0, q: Promise.resolve() };
+function villageSave(total) {
+  VS.q = VS.q.then(async () => {
+    const d = total - VS.saved; if (d <= 0 || !ckey) return;
+    const u = (await getUser(ckey)) || cur, m = (u.money || 0) + d, e = (u.earned || 0) + d;
+    await patchUser(ckey, { money: m, earned: e }); VS.saved += d; cur.money = m; cur.earned = e;
+  }).catch(() => {});
+  return VS.q;
+}
+/* Fin d'une partie de « Défense du village » : même écran de fin que les autres modes */
+async function endVillage(d) {
+  try { window.focus(); } catch (e) {}
+  G.playing = false; hud(false); show('over');
+  const gn = DN_VILLAGE.cash(d);
+  $('over').querySelector('h2').textContent = d.why === 'village' ? 'Le village est tombé' : 'Fin de la défense';
+  $('fs').textContent = Math.floor(Number(d.score) || 0); $('fd').textContent = 'Enregistrement du score…'; $('fc').textContent = ''; $('ft').replaceChildren();
+  await VS.q;
+  let u, rec = false; try { u = (await getUser(ckey)) || cur; } catch (e) { $('fd').textContent = 'Hors ligne : score non enregistré. Vérifiez votre connexion.'; return; } if ((u.rv || 0) !== (cur.rv || 0)) cur = u;
+  rec = DN_VILLAGE.apply(u, d);
+  const rest = Math.max(0, gn.total - VS.saved); u.money = (u.money || 0) + rest; u.earned = (u.earned || 0) + rest; norm(u);
+  const nt = checkTitles(u);
+  try { await putUser(ckey, u); } catch (e) { $('fd').textContent = 'Hors ligne : score non enregistré.'; return; }
+  VS.saved += rest; cur = u;
+  $('fd').textContent = 'Vague ' + d.wave + ', ' + d.kills + ' zombies abattus. ' + (rec ? 'Nouveau record personnel !' : 'Record Village : ' + u.vb);
+  $('fc').textContent = '+' + gn.total + ' $ gagnés (zombies ' + gn.k + ', combos ' + gn.c + ', distance ' + gn.d + ', vagues ' + gn.w + ') · Solde : ' + u.money + ' $';
+  const ftb = $('ft'); ftb.replaceChildren(); if (nt.length) { ftb.append(nt.length > 1 ? 'Titres débloqués : ' : 'Titre débloqué : '); nt.forEach(id => ftb.append(ttlEl(id, true), ' ')); ftb.append(mk('br'), 'À équiper dans Mon espace › Titres.'); }
+}
+addEventListener('message', e => {
+  const f = $('vfr'); if (!f || e.source !== f.contentWindow || !e.data) return;
+  if (e.data.type === 'village-cash') villageSave(Math.floor(Number(e.data.total) || 0));
+  else if (e.data.type === 'village-end') { f.remove(); endVillage(e.data); }
+});
 function modeArt(id) {
+  if (id === 'village') { if (!MART.village) MART.village = villageArt(); const k = document.createElement('canvas'); k.width = MART.village.width; k.height = MART.village.height; k.getContext('2d').drawImage(MART.village, 0, 0); return k; }
   const duo = id === 'duo', Wd = 480, Hd = 300;
   if (MART[id]) { const k = document.createElement('canvas'); k.width = Wd; k.height = Hd; k.getContext('2d').drawImage(MART[id], 0, 0); return k; }
   const c = document.createElement('canvas'); c.width = Wd; c.height = Hd; const x = c.getContext('2d');
@@ -360,11 +554,12 @@ function setBack(f) { backFn = f; $('btnInfoBack').textContent = f ? 'Retour' : 
 function nameEl(u) { const s = mk('span', 'nm', u.name); if (u.cert) s.append(' ', certEl()); if (tiOf(u)) s.append(' ', ttlEl(u.ti)); return s; }
 function fillTiles(box, list) { list.forEach(([l, v]) => { const t = mk('div', 'tile'); t.append(mk('b', '', v), mk('span', '', l)); box.appendChild(t); }); }
 function statSecs(u) {
-  const d = u.dist || 0, sum = o => Object.values(o || {}).reduce((a, b) => a + b, 0), dg = u.dg || 0, dk = u.dk || 0;
+  const d = u.dist || 0, sum = o => Object.values(o || {}).reduce((a, b) => a + b, 0), dg = u.dg || 0, dk = u.dk || 0, vg = u.vg || 0, vk = u.vk || 0;
   return [
-    ['Général · tous les modes', [['Argent', fmt(u.money) + ' $'], ['Argent total gagné', fmt(u.earned) + ' $'], ['Parties jouées', u.games || 0], ['Zombies tués', u.kills || 0], ['Points gagnés (total)', u.total || 0], ['Meilleure vague', Math.max(u.bw || 0, u.dbw || 0)], ['Meilleur combo', u.bc || 0], ['Distance parcourue', d >= 1000 ? (d / 1000).toFixed(2) + ' km' : Math.round(d) + ' m'], ['Temps de jeu', Math.round((u.tp || 0) / 60) + ' min'], ['Tirs effectués', u.shots || 0], ['Boss abattus', TS.boss(u)], ['Armes ramassées', sum(u.wk)], ['Pouvoirs utilisés', sum(u.pk)]]],
-    ['Solo infini', [['Record', u.best || 0], ['Meilleure vague', u.bw || 0], ['Parties', Math.max(0, (u.games || 0) - dg)], ['Zombies tués', Math.max(0, (u.kills || 0) - dk)]]],
-    ['Duo infini', [['Record Duo', u.db || 0], ['Meilleure vague', u.dbw || 0], ['Parties', dg], ['Zombies tués', dk]]]
+    ['Général · tous les modes', [['Argent', fmt(u.money) + ' $'], ['Argent total gagné', fmt(u.earned) + ' $'], ['Parties jouées', u.games || 0], ['Zombies tués', u.kills || 0], ['Points gagnés (total)', u.total || 0], ['Meilleure vague', Math.max(u.bw || 0, u.dbw || 0, u.vbw || 0)], ['Meilleur combo', u.bc || 0], ['Distance parcourue', d >= 1000 ? (d / 1000).toFixed(2) + ' km' : Math.round(d) + ' m'], ['Temps de jeu', Math.round((u.tp || 0) / 60) + ' min'], ['Tirs effectués', u.shots || 0], ['Boss abattus', TS.boss(u)], ['Armes ramassées', sum(u.wk)], ['Pouvoirs utilisés', sum(u.pk)]]],
+    ['Solo infini', [['Record', u.best || 0], ['Meilleure vague', u.bw || 0], ['Parties', Math.max(0, (u.games || 0) - dg - vg)], ['Zombies tués', Math.max(0, (u.kills || 0) - dk - vk)]]],
+    ['Duo infini', [['Record Duo', u.db || 0], ['Meilleure vague', u.dbw || 0], ['Parties', dg], ['Zombies tués', dk]]],
+    ['Défense du village', [['Record Village', u.vb || 0], ['Meilleure vague', u.vbw || 0], ['Parties', vg], ['Zombies tués', vk]]]
   ];
 }
 function fillStats(box, u) { statSecs(u).forEach(([t, l]) => { box.appendChild(mk('div', 'sec', t)); fillTiles(box, l); }); }
@@ -703,14 +898,26 @@ async function rankPage(tab) {
   const box = $('infoBody'); box.className = 'ciel'; box.replaceChildren(); box.scrollTop = 0;
   $('infoT').textContent = 'Classements'; $('infoC').textContent = 'Les meilleurs joueurs et les meilleures équipes';
   const tabs = mk('div', 'tabs ftabs'), body = mk('div', 'lb'), net = mk('small', 'net'), ol = mk('ol'); body.append(net, ol);
-  [['s', 'Solo infini'], ['d', 'Duo infini'], ['o', 'Autres classements']].forEach(([id, t]) => { const b = mk('button', rkTab === id ? 'on' : '', t); b.onclick = () => rankPage(id); tabs.appendChild(b); });
+  [['s', 'Solo infini'], ['d', 'Duo infini'], ['v', 'Défense du village'], ['o', 'Autres classements']].forEach(([id, t]) => { const b = mk('button', rkTab === id ? 'on' : '', t); b.onclick = () => rankPage(id); tabs.appendChild(b); });
   const sub = mk('div', 'sw'); if (rkTab === 'o') Object.entries(OR).forEach(([id, o]) => { const b = mk('button', 'mini' + (orTab === id ? ' on' : ''), o[0]); b.onclick = () => { orTab = id; rankPage('o'); }; sub.append(b); });
-  box.append(tabs, mk('p', 'note', { s: 'Les records des parties en solo.', d: 'Les meilleurs scores d’équipe en duo (un record par équipe).', o: 'Les statistiques cumulées de tous les modes, parties après parties.' }[rkTab]), ...(rkTab === 'o' ? [sub] : []), body); show('info');
+  box.append(tabs, mk('p', 'note', { s: 'Les records des parties en solo.', d: 'Les meilleurs scores d’équipe en duo (un record par équipe).', v: 'Les meilleurs scores du mode Défense du village.', o: 'Les statistiques cumulées de tous les modes, parties après parties.' }[rkTab]), ...(rkTab === 'o' ? [sub] : []), body); show('info');
   const msg = t => { const li = mk('li', 'empty', t); ol.replaceChildren(li); };
   if (rkTab === 's') return renderLB(ol, false, 100, () => rankPage('s'));
   net.textContent = MODE !== 'local' ? 'Classement en ligne, partagé entre tous les joueurs' : 'Classement local : seulement cet appareil';
   msg('Chargement…');
   if (rkTab === 'o') return otherRank(ol, msg);
+  if (rkTab === 'v') {
+    let all; try { all = await allUsers(); } catch (e) { if (curTab === 'r') msg('Classement indisponible (connexion impossible).'); return; }
+    if (curTab !== 'r' || rkTab !== 'v') return;
+    const rs = all.filter(u => (u.vb || 0) > 0).sort((a, b) => (b.vb || 0) - (a.vb || 0) || (b.vbw || 0) - (a.vbw || 0) || a.name.localeCompare(b.name)).slice(0, 100);
+    if (!rs.length) return msg('Aucun score pour l’instant. Lancez « Défense du village » pour apparaître ici.');
+    ol.replaceChildren();
+    rs.forEach(v => {
+      const li = mk('li', cur && v.name === cur.name ? 'me' : ''), s = mk('span'); s.append(v.name); if (v.cert) s.append(' ', certEl()); if (tiOf(v)) s.append(' ', ttlEl(v.ti));
+      s.append(mk('small', 'rw', 'Vague ' + (v.vbw || 0))); li.onclick = () => inspect(keyOf(v.name), () => rankPage('v')); li.append(avEl(v, 28), s, mk('b', '', v.vb)); ol.appendChild(li);
+    });
+    return;
+  }
   let list, all; try { [list, all] = await Promise.all([dget('duorank'), allUsers()]); } catch (e) { if (curTab === 'r') msg('Classement indisponible (connexion impossible).'); return; }
   if (curTab !== 'r' || rkTab !== 'd') return;
   const by = new Map(all.map(u => [keyOf(u.name), u]));
@@ -805,7 +1012,8 @@ const HWP = {
     hwH('Les modes'),
     hwGrid([
       hwCard('Solo infini', 'Survivez le plus longtemps possible. Seules les parties solo comptent pour le classement solo.'),
-      hwCard('Duo infini', 'Une équipe de deux, plus de monstres, plus dur. Invitez un ami depuis le salon. Un joueur à terre est <b>réanimé</b> si son coéquipier reste près de lui environ 3 s, et revient à chaque nouvelle vague. Mode encore en développement.')
+      hwCard('Duo infini', 'Une équipe de deux, plus de monstres, plus dur. Invitez un ami depuis le salon. Un joueur à terre est <b>réanimé</b> si son coéquipier reste près de lui environ 3 s, et revient à chaque nouvelle vague. Mode encore en développement.'),
+      hwCard('Défense du village', 'Protégez le village et son feu de camp : construisez, recrutez des soldats et tenez la barrière. Votre <b>skin</b>, vos <b>améliorations</b> d’armes et de pouvoirs, et vos découvertes comptent dans ce mode. Les dollars gagnés et vos statistiques rejoignent votre compte, avec un classement à part.')
     ]),
     hwH('La communauté'),
     hwGrid([
@@ -1438,6 +1646,7 @@ function setPause(v) { if (G.duo) { G.pm = v; show(v ? 'pause' : null); return; 
 /* ---------- Partie ---------- */
 function start() {
   if (!cur) return showMenu();
+  if (gameMode === 'village') return openVillage();
   if (gameMode === 'duo' && !DU.go) return duoLobby();
   G = {
     playing: true, paused: false, t: 0, wave: 0, score: 0, kills: 0, brk: 0, dc: 0, combo: 0, ct: 0, dist: 0, shots: 0, zk: {}, wk: {}, lx: WORLD / 2, ly: WORLD / 2, flash: 0, spawnLeft: 0, spawnT: 1,
@@ -1611,7 +1820,7 @@ function take(d) {
 async function end() {
   if (G.over) return; G.over = true; sfx('over'); if (G.duo) duoCleanup();
   for (let i = 0; i < 40 && G.saving; i++) await new Promise(r => setTimeout(r, 50));
-  G.playing = false; hud(false); show('over');
+  G.playing = false; hud(false); show('over'); $('over').querySelector('h2').textContent = 'Vous êtes tombé';
   $('fs').textContent = G.score; $('fd').textContent = 'Enregistrement du score…'; $('fc').textContent = ''; $('ft').replaceChildren();
   let u, rec = false; try { u = (await getUser(ckey)) || cur; } catch (e) { $('fd').textContent = 'Hors ligne : score non enregistré. Vérifiez votre connexion.'; return; } if ((u.rv || 0) !== (cur.rv || 0)) cur = u;
   u.games = (u.games || 0) + 1; u.kills = (u.kills || 0) + G.kills;
