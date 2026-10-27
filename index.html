@@ -3,6 +3,21 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Dernière nuit – Survie zombie</title>
 <link rel="stylesheet" href="style.css">
+<style id="modes-css">
+/* Menu « Choisir le mode » : plus large, tous les modes visibles sur une seule page */
+#info .card.xl{width:min(1280px,96vw)!important;max-width:none!important}
+#infoBody.modes{max-height:none!important;overflow:visible!important}
+#infoBody.modes .sqs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:22px!important;width:100%!important;margin:10px 0 14px!important}
+#infoBody.modes .sq.mode{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;height:auto!important;min-height:0!important;aspect-ratio:auto!important;padding:0!important;overflow:hidden!important;text-align:left!important;border-radius:20px!important;border:1px solid rgba(255,255,255,.12)!important;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))!important;box-shadow:0 10px 30px rgba(0,0,0,.45)!important;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease!important;cursor:pointer}
+#infoBody.modes .sq.mode:hover{transform:translateY(-5px);border-color:rgba(255,150,70,.65)!important;box-shadow:0 16px 38px rgba(0,0,0,.55),0 0 0 1px rgba(255,150,70,.35)!important}
+#infoBody.modes .sq.mode.on{border-color:#ff9a46!important;box-shadow:0 0 0 2px rgba(255,154,70,.55),0 16px 40px rgba(255,122,47,.22)!important}
+#infoBody.modes .sq.mode canvas{display:block;width:100%!important;height:auto!important;aspect-ratio:8/5;max-height:38vh;object-fit:cover;border-bottom:1px solid rgba(255,255,255,.1)}
+#infoBody.modes .sq.mode b{display:block;margin:16px 20px 4px;font-size:1.3rem;letter-spacing:.2px}
+#infoBody.modes .sq.mode small{display:block;margin:0 20px 14px;opacity:.78;line-height:1.35}
+#infoBody.modes .sq.mode .mtag{display:inline-block!important;align-self:flex-start;margin:auto 20px 18px!important;padding:7px 16px;border-radius:999px;font-size:.85rem;font-weight:700;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18)}
+#infoBody.modes .sq.mode.on .mtag{background:#ff7a2f;border-color:#ff7a2f;color:#190b02}
+@media (max-width:900px){#infoBody.modes .sqs{grid-template-columns:1fr!important}#infoBody.modes .sq.mode canvas{max-height:none}}
+</style>
 </head><body>
 <canvas id="c"></canvas><div id="vig"></div>
 <div id="hud" class="hide">
@@ -37,7 +52,7 @@
     <h1>Dernière<br>nuit</h1>
     <p class="sub">Survivez aux vagues de zombies. Chaque zombie abattu rapporte des points.</p>
     <p class="note mb14">🚧 Jeu encore en développement : un peu de lags est normal, ça s’améliore à chaque mise à jour.</p>
-    <div id="mav" class="mav"></div><p class="who">Connecté : <b id="who"></b> · record <b id="rec">0</b></p>
+    <div id="mav" class="mav"></div>
     <button id="btnPlay" class="btn">Jouer</button>
     <button id="btnMode" class="btn ghost modebtn" data-i="m"><b>Choisir le mode</b><small id="modeSel"></small></button>
 </div>
