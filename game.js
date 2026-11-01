@@ -248,7 +248,7 @@ const pch = id => PW[id].n + (plv(id) >= 3 ? 1 : 0);
 const pcost = id => Math.round((plv(id) + 1) * (160 + Object.keys(PW).indexOf(id) * 25));
 function mk(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
 /* ---------- Modes de jeu et paramètres ---------- */
-const MODES = { solo: { name: 'Solo infini', sub: 'Mode infini : survivez le plus longtemps possible' }, duo: { name: 'Duo infini', sub: 'Plus de monstres, plus dur. Encore en développement' }, village: { name: 'Défense du village', sub: 'Protégez les villageois, construisez, recrutez des soldats' } };
+const MODES = { solo: { name: 'Solo infini', sub: 'Mode infini : survivez le plus longtemps possible' }, duo: { name: 'Duo infini', sub: 'Plus de monstres, plus dur. Encore en développement' }, village: { name: 'Défense du village', sub: 'Protégez les villageois, construisez, recrutez des soldats' }, tower: { name: 'Tower Defense', sub: 'Posez des tourelles sur le chemin des zombies : mode infini ou 10 niveaux' } };
 let gameMode = 'solo'; try { const m = localStorage.getItem('dn_gmode'); if (MODES[m]) gameMode = m; } catch (e) {}
 function modeLbl() { const e = $('modeSel'); if (e) e.textContent = 'Mode sélectionné : ' + MODES[gameMode].name; }
 /* illustration du mode : scène de nuit éclairée à la lampe torche (générée une seule fois puis copiée) */
@@ -446,7 +446,100 @@ addEventListener('message', e => {
   if (e.data.type === 'village-cash') villageSave(Math.floor(Number(e.data.total) || 0));
   else if (e.data.type === 'village-end') { f.remove(); endVillage(e.data); }
 });
+/* ---------- Mode « Tower Defense » (jeu séparé : tower.js, affiché en plein écran par-dessus le menu) ---------- */
+function towerArt() {
+  const Wd = 960, Hd = 600, c = document.createElement('canvas'); c.width = Wd; c.height = Hd; const x = c.getContext('2d');
+  let sd = 77; const R = () => { sd = (sd + 0x6D2B79F5) | 0; let t = Math.imul(sd ^ (sd >>> 15), 1 | sd); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const rr = (a, b) => a + R() * (b - a);
+  const glow = (gx, gy, r, rgb, a) => { const g = x.createRadialGradient(gx, gy, 0, gx, gy, r); g.addColorStop(0, 'rgba(' + rgb + ',' + a + ')'); g.addColorStop(1, 'rgba(' + rgb + ',0)'); x.fillStyle = g; x.fillRect(gx - r, gy - r, r * 2, r * 2); };
+  /* sol de nuit */
+  x.fillStyle = '#0f1c22'; x.fillRect(0, 0, Wd, Hd);
+  for (let i = 0; i < 360; i++) { x.fillStyle = 'hsla(' + rr(140, 190) + ',' + rr(18, 30) + '%,' + rr(8, 17) + '%,' + rr(.2, .45) + ')'; x.beginPath(); x.ellipse(rr(0, Wd), rr(0, Hd), rr(24, 90), rr(16, 60), rr(0, 3), 0, 7); x.fill(); }
+  /* chemin des zombies */
+  const P = [[-40, 120], [220, 120], [220, 400], [520, 400], [520, 190], [760, 190], [760, 440], [880, 440]];
+  const path = () => { x.beginPath(); P.forEach((q, i) => i ? x.lineTo(q[0], q[1]) : x.moveTo(q[0], q[1])); };
+  x.lineJoin = 'round'; x.lineCap = 'round';
+  path(); x.strokeStyle = 'rgba(0,0,0,.45)'; x.lineWidth = 92; x.stroke();
+  path(); x.strokeStyle = '#6b5438'; x.lineWidth = 78; x.stroke();
+  path(); x.strokeStyle = '#85694a'; x.lineWidth = 60; x.stroke();
+  for (let i = 0; i < 260; i++) { x.fillStyle = R() < .5 ? 'rgba(40,28,16,.28)' : 'rgba(190,160,120,.16)'; x.beginPath(); x.arc(rr(0, Wd), rr(0, Hd), rr(1.5, 4), 0, 7); x.fill(); }
+  /* arbres */
+  const tree = (tx, ty, r) => { x.fillStyle = 'rgba(0,0,0,.4)'; x.beginPath(); x.ellipse(tx + r * .3, ty + r * .45, r, r * .8, 0, 0, 7); x.fill(); [['#10301f', 1], ['#1b5139', .78], ['#27704f', .5]].forEach(([col, k], i) => { x.fillStyle = col; x.beginPath(); x.arc(tx - i * 3, ty - i * 4, r * k, 0, 7); x.fill(); }); };
+  [[90, 300, 40], [60, 520, 46], [330, 90, 34], [400, 540, 42], [650, 90, 38], [640, 330, 30], [900, 130, 44], [880, 300, 36], [330, 260, 28]].forEach(a => tree(...a));
+  /* dalles d'emplacement */
+  [[150, 200], [300, 300], [380, 470], [450, 300], [610, 300], [660, 110], [840, 330], [690, 520]].forEach(([px, py]) => { x.fillStyle = 'rgba(255,210,74,.12)'; x.strokeStyle = 'rgba(255,210,74,.55)'; x.lineWidth = 2; x.setLineDash([6, 5]); x.beginPath(); x.roundRect(px - 24, py - 24, 48, 48, 8); x.fill(); x.stroke(); x.setLineDash([]); });
+  /* tourelles, portées et tirs */
+  const zs = [[110, 120], [180, 122], [220, 250], [330, 400], [470, 400], [520, 300], [600, 190], [700, 190], [760, 300], [790, 440]];
+  const turret = (tx, ty, col, ang) => {
+    glow(tx, ty, 90, col, .22);
+    x.fillStyle = '#1a2538'; x.strokeStyle = 'rgba(255,255,255,.35)'; x.lineWidth = 2; x.beginPath(); x.roundRect(tx - 22, ty - 22, 44, 44, 8); x.fill(); x.stroke();
+    x.save(); x.translate(tx, ty); x.rotate(ang); x.fillStyle = 'rgb(' + col + ')'; x.fillRect(0, -5, 34, 10); x.beginPath(); x.arc(0, 0, 13, 0, 7); x.fill(); x.fillStyle = 'rgba(0,0,0,.35)'; x.beginPath(); x.arc(0, 0, 6, 0, 7); x.fill(); x.restore();
+    let best = zs[0], bd = 1e9; zs.forEach(z => { const d = Math.hypot(z[0] - tx, z[1] - ty); if (d < bd) { bd = d; best = z; } });
+    x.strokeStyle = 'rgba(' + col + ',.9)'; x.lineWidth = 3; x.beginPath(); x.moveTo(tx + Math.cos(ang) * 34, ty + Math.sin(ang) * 34); x.lineTo(best[0], best[1]); x.stroke();
+  };
+  [[150, 200, '255,154,60'], [300, 300, '95,214,160'], [380, 470, '127,184,255'], [450, 300, '255,154,60'], [610, 300, '255,90,90'], [660, 110, '95,214,160'], [840, 330, '127,184,255']].forEach(([tx, ty, col]) => {
+    let best = zs[0], bd = 1e9; zs.forEach(z => { const d = Math.hypot(z[0] - tx, z[1] - ty); if (d < bd) { bd = d; best = z; } });
+    turret(tx, ty, col, Math.atan2(best[1] - ty, best[0] - tx));
+  });
+  /* zombies */
+  zs.forEach(([zx, zy]) => { x.fillStyle = 'rgba(0,0,0,.4)'; x.beginPath(); x.ellipse(zx + 3, zy + 5, 14, 9, 0, 0, 7); x.fill(); x.fillStyle = R() < .3 ? '#7a8f4a' : '#5e8a4f'; x.beginPath(); x.arc(zx, zy, 13, 0, 7); x.fill(); x.fillStyle = '#ff3b3b'; x.fillRect(zx + 3, zy - 5, 3, 3); x.fillRect(zx + 3, zy + 2, 3, 3); });
+  /* base */
+  glow(880, 440, 150, '255,154,60', .3);
+  x.fillStyle = '#2a3548'; x.strokeStyle = '#ff9a3c'; x.lineWidth = 4; x.beginPath(); x.roundRect(850, 395, 100, 90, 10); x.fill(); x.stroke();
+  x.fillStyle = '#ff9a3c'; x.beginPath(); x.moveTo(868, 415); x.lineTo(900, 395); x.lineTo(932, 415); x.closePath(); x.fill();
+  /* ombre et grain */
+  const vg = x.createRadialGradient(Wd / 2, Hd / 2, 230, Wd / 2, Hd / 2, 600); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.72)'); x.fillStyle = vg; x.fillRect(0, 0, Wd, Hd);
+  for (let i = 0; i < 4000; i++) { x.fillStyle = R() < .5 ? 'rgba(255,255,255,.035)' : 'rgba(0,0,0,.07)'; x.fillRect(rr(0, Wd), rr(0, Hd), 1.4, 1.4); }
+  /* bandeau type HUD */
+  x.save(); x.textBaseline = 'top'; x.shadowColor = '#000'; x.shadowBlur = 10; x.font = '400 40px Impact,"Arial Black",sans-serif'; x.fillStyle = 'rgba(255,255,255,.92)'; x.textAlign = 'left'; x.fillText('VAGUE 8', 28, 24);
+  x.textAlign = 'right'; x.fillStyle = 'rgba(255,210,74,.95)'; x.font = '400 30px Impact,"Arial Black",sans-serif'; x.fillText('7 TOURELLES', Wd - 28, 30); x.restore();
+  return c;
+}
+function openTower() {
+  /* le mode est dans tower.js, chargé seulement quand on en a besoin : il affiche son propre menu (Infini / Niveaux) avec un bouton pour revenir ici */
+  const go = () => {
+    TW.q = Promise.resolve(); TW.saved = 0;
+    window.DN_TOWER.open({ name: cur.name, skin: skinOf(cur), wl: cur.wl || {}, pl: cur.pl || {}, dw: cur.dw || [], dz: cur.dz || [], dp: cur.dp || [], tl: cur.tl || 1, tst: cur.tst || {}, tbs: cur.tbs || {}, money: cur.money || 0 });
+  };
+  if (window.DN_TOWER) return go();
+  window.DN_HOST = true;   /* dit à tower.js qu'il est chargé par le jeu principal : il ne doit pas toucher à cette page */
+  const s = document.createElement('script'); s.src = 'tower.js';
+  s.onload = go;
+  s.onerror = () => alert('Impossible de charger tower.js : vérifiez qu’il est dans le même dossier que index.html.');
+  document.head.appendChild(s);
+}
+/* Argent du Tower Defense : enregistré toutes les 8 s environ, le reste à la fin de chaque partie. Tout passe par une file pour garder l'ordre. */
+const TW = { saved: 0, q: Promise.resolve() };
+function towerSave(total) {
+  TW.q = TW.q.then(async () => {
+    const d = total - TW.saved; if (d <= 0 || !ckey) return;
+    const u = (await getUser(ckey)) || cur, m = (u.money || 0) + d, e = (u.earned || 0) + d;
+    await patchUser(ckey, { money: m, earned: e }); TW.saved += d; cur.money = m; cur.earned = e;
+  }).catch(() => {});
+  return TW.q;
+}
+/* Fin d'une partie de Tower Defense : on enregistre le résultat (stats, argent, niveaux, record, titres) ; l'écran de fin et les boutons restent dans le mode lui-même */
+function towerEnd(d) {
+  TW.q = TW.q.then(async () => {
+    if (!ckey) return;
+    const gn = DN_TOWER.cash(d), u = (await getUser(ckey)) || cur; if ((u.rv || 0) !== (cur.rv || 0)) cur = u;
+    DN_TOWER.apply(u, d);
+    const rest = Math.max(0, gn.total - TW.saved); u.money = (u.money || 0) + rest; u.earned = (u.earned || 0) + rest; norm(u);
+    checkTitles(u);
+    await putUser(ckey, u); TW.saved = 0; cur = u;
+  }).catch(() => {});
+  return TW.q;
+}
+addEventListener('message', e => {
+  const f = $('tfr'); if (!f || e.source !== f.contentWindow || !e.data) return;
+  const t = e.data.type;
+  if (t === 'tower-start') TW.q = TW.q.then(() => { TW.saved = 0; });
+  else if (t === 'tower-cash') towerSave(Math.floor(Number(e.data.total) || 0));
+  else if (t === 'tower-end') towerEnd(e.data);
+  else if (t === 'tower-quit') { f.remove(); try { window.focus(); } catch (x) {} showMenu(); TW.q.then(() => { if (!$('tfr')) showMenu(); }); }   /* retour immédiat au menu principal, puis rafraîchi une fois l'enregistrement fini */
+});
 function modeArt(id) {
+  if (id === 'tower') { if (!MART.tower) MART.tower = towerArt(); const k = document.createElement('canvas'); k.width = MART.tower.width; k.height = MART.tower.height; k.getContext('2d').drawImage(MART.tower, 0, 0); return k; }
   if (id === 'village') { if (!MART.village) MART.village = villageArt(); const k = document.createElement('canvas'); k.width = MART.village.width; k.height = MART.village.height; k.getContext('2d').drawImage(MART.village, 0, 0); return k; }
   const duo = id === 'duo', Wd = 480, Hd = 300;
   if (MART[id]) { const k = document.createElement('canvas'); k.width = Wd; k.height = Hd; k.getContext('2d').drawImage(MART[id], 0, 0); return k; }
@@ -536,7 +629,7 @@ function modePage() {
   $('infoT').textContent = 'Choisir le mode'; $('infoC').textContent = 'Cliquez sur un mode pour l’activer, puis lancez la partie avec « Jouer ».';
   const grid = mk('div', 'sqs');
   Object.entries(MODES).forEach(([id, m]) => {
-    const on = id === gameMode, b = mk('button', 'sq mode' + (on ? ' on' : ''));
+    const on = id === gameMode, b = mk('button', 'sq mode m-' + id + (on ? ' on' : ''));
     b.append(modeArt(id), mk('b', '', m.name), mk('small', '', m.sub), mk('span', 'mtag', on ? '✔ Mode activé' : 'Activer'));
     b.onclick = () => { gameMode = id; try { localStorage.setItem('dn_gmode', id); } catch (e) {} modeLbl(); if (id === 'duo') duoLobby(); else modePage(); };
     grid.appendChild(b);
@@ -554,12 +647,13 @@ function setBack(f) { backFn = f; $('btnInfoBack').textContent = f ? 'Retour' : 
 function nameEl(u) { const s = mk('span', 'nm', u.name); if (u.cert) s.append(' ', certEl()); if (tiOf(u)) s.append(' ', ttlEl(u.ti)); return s; }
 function fillTiles(box, list) { list.forEach(([l, v]) => { const t = mk('div', 'tile'); t.append(mk('b', '', v), mk('span', '', l)); box.appendChild(t); }); }
 function statSecs(u) {
-  const d = u.dist || 0, sum = o => Object.values(o || {}).reduce((a, b) => a + b, 0), dg = u.dg || 0, dk = u.dk || 0, vg = u.vg || 0, vk = u.vk || 0;
+  const d = u.dist || 0, sum = o => Object.values(o || {}).reduce((a, b) => a + b, 0), dg = u.dg || 0, dk = u.dk || 0, vg = u.vg || 0, vk = u.vk || 0, tg = u.tg || 0, tk = u.tk || 0, tbs = u.tbs || {}, tst = u.tst || {}, tstars = Object.values(tst).reduce((a, b) => a + (b || 0), 0), tlv = Math.max(1, Math.min(10, u.tl || 1));
   return [
-    ['Général · tous les modes', [['Argent', fmt(u.money) + ' $'], ['Argent total gagné', fmt(u.earned) + ' $'], ['Parties jouées', u.games || 0], ['Zombies tués', u.kills || 0], ['Points gagnés (total)', u.total || 0], ['Meilleure vague', Math.max(u.bw || 0, u.dbw || 0, u.vbw || 0)], ['Meilleur combo', u.bc || 0], ['Distance parcourue', d >= 1000 ? (d / 1000).toFixed(2) + ' km' : Math.round(d) + ' m'], ['Temps de jeu', Math.round((u.tp || 0) / 60) + ' min'], ['Tirs effectués', u.shots || 0], ['Boss abattus', TS.boss(u)], ['Armes ramassées', sum(u.wk)], ['Pouvoirs utilisés', sum(u.pk)]]],
-    ['Solo infini', [['Record', u.best || 0], ['Meilleure vague', u.bw || 0], ['Parties', Math.max(0, (u.games || 0) - dg - vg)], ['Zombies tués', Math.max(0, (u.kills || 0) - dk - vk)]]],
+    ['Général · tous les modes', [['Argent', fmt(u.money) + ' $'], ['Argent total gagné', fmt(u.earned) + ' $'], ['Parties jouées', u.games || 0], ['Zombies tués', u.kills || 0], ['Points gagnés (total)', u.total || 0], ['Meilleure vague', Math.max(u.bw || 0, u.dbw || 0, u.vbw || 0, u.tbw || 0)], ['Meilleur combo', u.bc || 0], ['Distance parcourue', d >= 1000 ? (d / 1000).toFixed(2) + ' km' : Math.round(d) + ' m'], ['Temps de jeu', Math.round((u.tp || 0) / 60) + ' min'], ['Tirs effectués', u.shots || 0], ['Boss abattus', TS.boss(u)], ['Armes ramassées', sum(u.wk)], ['Pouvoirs utilisés', sum(u.pk)]]],
+    ['Solo infini', [['Record', u.best || 0], ['Meilleure vague', u.bw || 0], ['Parties', Math.max(0, (u.games || 0) - dg - vg - tg)], ['Zombies tués', Math.max(0, (u.kills || 0) - dk - vk - tk)]]],
     ['Duo infini', [['Record Duo', u.db || 0], ['Meilleure vague', u.dbw || 0], ['Parties', dg], ['Zombies tués', dk]]],
-    ['Défense du village', [['Record Village', u.vb || 0], ['Meilleure vague', u.vbw || 0], ['Parties', vg], ['Zombies tués', vk]]]
+    ['Défense du village', [['Record Village', u.vb || 0], ['Meilleure vague', u.vbw || 0], ['Parties', vg], ['Zombies tués', vk]]],
+    ['Tower Defense', [['Record infini', tbs.l11 || 0], ['Meilleure vague infini', u.tbw || 0], ['Niveaux débloqués', tlv + ' / 10'], ['Étoiles', tstars + ' / 30'], ['Meilleur niveau (score)', Math.max(0, ...Array.from({ length: 10 }, (_, i) => tbs['l' + (i + 1)] || 0))], ['Parties', tg], ['Zombies tués', tk]]]
   ];
 }
 function fillStats(box, u) { statSecs(u).forEach(([t, l]) => { box.appendChild(mk('div', 'sec', t)); fillTiles(box, l); }); }
@@ -898,14 +992,36 @@ async function rankPage(tab) {
   const box = $('infoBody'); box.className = 'ciel'; box.replaceChildren(); box.scrollTop = 0;
   $('infoT').textContent = 'Classements'; $('infoC').textContent = 'Les meilleurs joueurs et les meilleures équipes';
   const tabs = mk('div', 'tabs ftabs'), body = mk('div', 'lb'), net = mk('small', 'net'), ol = mk('ol'); body.append(net, ol);
-  [['s', 'Solo infini'], ['d', 'Duo infini'], ['v', 'Défense du village'], ['o', 'Autres classements']].forEach(([id, t]) => { const b = mk('button', rkTab === id ? 'on' : '', t); b.onclick = () => rankPage(id); tabs.appendChild(b); });
+  [['s', 'Solo infini'], ['d', 'Duo infini'], ['v', 'Défense du village'], ['t', 'Tower Defense'], ['o', 'Autres classements']].forEach(([id, t]) => { const b = mk('button', rkTab === id ? 'on' : '', t); b.onclick = () => rankPage(id); tabs.appendChild(b); });
   const sub = mk('div', 'sw'); if (rkTab === 'o') Object.entries(OR).forEach(([id, o]) => { const b = mk('button', 'mini' + (orTab === id ? ' on' : ''), o[0]); b.onclick = () => { orTab = id; rankPage('o'); }; sub.append(b); });
-  box.append(tabs, mk('p', 'note', { s: 'Les records des parties en solo.', d: 'Les meilleurs scores d’équipe en duo (un record par équipe).', v: 'Les meilleurs scores du mode Défense du village.', o: 'Les statistiques cumulées de tous les modes, parties après parties.' }[rkTab]), ...(rkTab === 'o' ? [sub] : []), body); show('info');
+  if (rkTab === 't') [['n', 'Niveaux atteints'], ['i', 'Infini : points et vague']].forEach(([id, t]) => { const b = mk('button', 'mini' + (twTab === id ? ' on' : ''), t); b.onclick = () => { twTab = id; rankPage('t'); }; sub.append(b); });
+  box.append(tabs, mk('p', 'note', { s: 'Les records des parties en solo.', d: 'Les meilleurs scores d’équipe en duo (un record par équipe).', v: 'Les meilleurs scores du mode Défense du village.', t: twTab === 'n' ? 'Les joueurs qui sont allés le plus loin dans les 10 niveaux du Tower Defense (niveau débloqué, puis étoiles).' : 'Les meilleurs scores du Tower Defense en mode infini, avec la vague atteinte.', o: 'Les statistiques cumulées de tous les modes, parties après parties.' }[rkTab]), ...(rkTab === 'o' || rkTab === 't' ? [sub] : []), body); show('info');
   const msg = t => { const li = mk('li', 'empty', t); ol.replaceChildren(li); };
   if (rkTab === 's') return renderLB(ol, false, 100, () => rankPage('s'));
   net.textContent = MODE !== 'local' ? 'Classement en ligne, partagé entre tous les joueurs' : 'Classement local : seulement cet appareil';
   msg('Chargement…');
   if (rkTab === 'o') return otherRank(ol, msg);
+  if (rkTab === 't') {
+    let all; try { all = await allUsers(); } catch (e) { if (curTab === 'r') msg('Classement indisponible (connexion impossible).'); return; }
+    if (curTab !== 'r' || rkTab !== 't') return;
+    const stars = u => Object.values(u.tst || {}).reduce((a, b) => a + (b || 0), 0), lvl = u => Math.max(1, Math.min(10, u.tl || 1)), inf = u => (u.tbs && u.tbs.l11) || 0;
+    const played = u => (u.tg || 0) > 0 || Object.keys(u.tbs || {}).length > 0;
+    let rs, val, sm;
+    if (twTab === 'n') {
+      rs = all.filter(played).sort((a, b) => lvl(b) - lvl(a) || stars(b) - stars(a) || a.name.localeCompare(b.name)).slice(0, 100);
+      val = u => 'Niv. ' + lvl(u); sm = u => stars(u) + ' ★ sur 30';
+    } else {
+      rs = all.filter(u => inf(u) > 0).sort((a, b) => inf(b) - inf(a) || (b.tbw || 0) - (a.tbw || 0) || a.name.localeCompare(b.name)).slice(0, 100);
+      val = u => inf(u); sm = u => 'Vague ' + (u.tbw || 0);
+    }
+    if (!rs.length) return msg(twTab === 'n' ? 'Aucun joueur pour l’instant. Lancez « Tower Defense » pour apparaître ici.' : 'Aucun score pour l’instant. Lancez le mode infini du Tower Defense pour apparaître ici.');
+    ol.replaceChildren();
+    rs.forEach(v => {
+      const li = mk('li', cur && v.name === cur.name ? 'me' : ''), s = mk('span'); s.append(v.name); if (v.cert) s.append(' ', certEl()); if (tiOf(v)) s.append(' ', ttlEl(v.ti));
+      s.append(mk('small', 'rw', sm(v))); li.onclick = () => inspect(keyOf(v.name), () => rankPage('t')); li.append(avEl(v, 28), s, mk('b', '', val(v))); ol.appendChild(li);
+    });
+    return;
+  }
   if (rkTab === 'v') {
     let all; try { all = await allUsers(); } catch (e) { if (curTab === 'r') msg('Classement indisponible (connexion impossible).'); return; }
     if (curTab !== 'r' || rkTab !== 'v') return;
@@ -1013,7 +1129,8 @@ const HWP = {
     hwGrid([
       hwCard('Solo infini', 'Survivez le plus longtemps possible. Seules les parties solo comptent pour le classement solo.'),
       hwCard('Duo infini', 'Une équipe de deux, plus de monstres, plus dur. Invitez un ami depuis le salon. Un joueur à terre est <b>réanimé</b> si son coéquipier reste près de lui environ 3 s, et revient à chaque nouvelle vague. Mode encore en développement.'),
-      hwCard('Défense du village', 'Protégez le village et son feu de camp : construisez, recrutez des soldats et tenez la barrière. Votre <b>skin</b>, vos <b>améliorations</b> d’armes et de pouvoirs, et vos découvertes comptent dans ce mode. Les dollars gagnés et vos statistiques rejoignent votre compte, avec un classement à part.')
+      hwCard('Défense du village', 'Protégez le village et son feu de camp : construisez, recrutez des soldats et tenez la barrière. Votre <b>skin</b>, vos <b>améliorations</b> d’armes et de pouvoirs, et vos découvertes comptent dans ce mode. Les dollars gagnés et vos statistiques rejoignent votre compte, avec un classement à part.'),
+      hwCard('Tower Defense', 'Posez des <b>tourelles</b> sur les dalles jaunes pour arrêter les zombies avant qu’ils atteignent votre base. Choisissez le mode <b>infini</b> (carte extensible, vagues sans fin) ou les <b>10 niveaux</b> (une carte par niveau, jusqu’à 3 étoiles). Votre skin, vos améliorations et vos découvertes comptent. Les dollars gagnés et vos statistiques rejoignent votre compte, avec un classement à part. Le bouton de retour vous ramène au menu principal.')
     ]),
     hwH('La communauté'),
     hwGrid([
@@ -1033,7 +1150,7 @@ function howPage(tab) {
   [['b', 'Bases'], ['c', 'Combat'], ['p', 'Pouvoirs'], ['g', 'Progression'], ['s', 'Modes et communauté']].forEach(([id, t]) => { const b = mk('button', howTab === id ? 'on' : '', t); b.onclick = () => howPage(id); tabs.append(b); });
   pan.append(...HWP[howTab]()); box.append(hero, tabs, pan); show('info');
 }
-let orTab = 'k';
+let orTab = 'k', twTab = 'n';
 const fmtDur = s => { const m = Math.floor(s / 60), h = Math.floor(m / 60); return h ? h + ' h ' + String(m % 60).padStart(2, '0') : m + ' min'; };
 const OR = { k: ['Zombies tués', u => u.kills || 0, v => fmt(v)], t: ['Temps de jeu', u => Math.round(u.tp || 0), fmtDur], b: ['Boss abattus', u => TS.boss(u), v => fmt(v)] };
 async function otherRank(ol, msg) {
@@ -1647,6 +1764,7 @@ function setPause(v) { if (G.duo) { G.pm = v; show(v ? 'pause' : null); return; 
 function start() {
   if (!cur) return showMenu();
   if (gameMode === 'village') return openVillage();
+  if (gameMode === 'tower') return openTower();
   if (gameMode === 'duo' && !DU.go) return duoLobby();
   G = {
     playing: true, paused: false, t: 0, wave: 0, score: 0, kills: 0, brk: 0, dc: 0, combo: 0, ct: 0, dist: 0, shots: 0, zk: {}, wk: {}, lx: WORLD / 2, ly: WORLD / 2, flash: 0, spawnLeft: 0, spawnT: 1,
